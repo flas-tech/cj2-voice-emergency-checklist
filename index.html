@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CJ2 Voice Emergency Checklist — Demo</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="phone">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">✈</span>
+        <div>
+          <div class="brand-title">CJ2 EMERGENCY</div>
+          <div class="brand-sub">Voice Checklist · Demo</div>
+        </div>
+      </div>
+      <div id="mic-indicator" class="mic-indicator" title="Microphone state">
+        <span class="dot"></span><span id="mic-label">IDLE</span>
+      </div>
+    </header>
+
+    <!-- HEARD / TRANSCRIPT -->
+    <div id="heard" class="heard" aria-live="polite"></div>
+
+    <!-- VIEW: HOME (waiting for emergency name) -->
+    <section id="view-home" class="view active">
+      <div class="prompt-card">
+        <div class="big-instruction">State the emergency</div>
+        <div class="hint">Hold the <b>PUSH TO TALK</b> button below and say an emergency by name. Release when done.</div>
+      </div>
+
+      <details class="howto" open>
+        <summary>How this works</summary>
+        <ol>
+          <li><b>Hold Push-to-Talk</b> and say the emergency name (e.g. &ldquo;engine fire&rdquo;). Release to submit.</li>
+          <li>The system <b>reads the matching checklist</b> aloud, one item at a time.</li>
+          <li>After each item, <b>hold Push-to-Talk</b> and say the item&rsquo;s completion word (shown under each step), or a universal word like &ldquo;check&rdquo;, &ldquo;complete&rdquo;, or &ldquo;next&rdquo;.</li>
+          <li>It advances to the next item and reads it. Repeat until the checklist is complete.</li>
+          <li>Say &ldquo;reset&rdquo; (or tap Reset) to start over. No internet or login needed.</li>
+        </ol>
+      </details>
+
+      <div class="chips-label">Or tap a checklist to start:</div>
+      <div class="chips" id="trigger-chips"></div>
+
+      <details class="howto trouble">
+        <summary>Troubleshooting</summary>
+        <ul>
+          <li><b>Button does nothing / no mic:</b> Use <b>Chrome</b> or <b>Edge</b> on desktop and <b>allow microphone access</b> when prompted. Safari and Firefox have limited support.</li>
+          <li><b>Must be HTTPS or localhost:</b> The mic only works on a secure (https://) page or on localhost. A plain file:// page won&rsquo;t get mic access.</li>
+          <li><b>Nothing is recognized:</b> Speak clearly after the button turns red, and keep holding until you finish the phrase.</li>
+          <li><b>No voice / silent readout:</b> Check system volume and that the tab isn&rsquo;t muted. Tap any button once to satisfy the browser&rsquo;s audio-autoplay rule.</li>
+          <li><b>Wrong checklist matched:</b> Use the exact emergency name, or tap its chip instead.</li>
+          <li><b>Always use the buttons</b> (Mark Complete / Repeat / Reset) as a fallback if voice misfires.</li>
+        </ul>
+      </details>
+    </section>
+
+    <!-- VIEW: CHECKLIST (running) -->
+    <section id="view-list" class="view">
+      <div class="list-head">
+        <div id="list-title" class="list-title"></div>
+        <div id="list-progress" class="list-progress"></div>
+      </div>
+      <div id="items" class="items"></div>
+      <div class="advance-hint" id="advance-hint"></div>
+    </section>
+
+    <!-- CONTROLS -->
+    <div class="ptt-wrap">
+      <button id="btn-ptt" class="btn-ptt">
+        <span class="ptt-icon">🎙</span>
+        <span class="ptt-text">PUSH TO TALK</span>
+        <span class="ptt-sub">hold &amp; speak</span>
+      </button>
+    </div>
+    <footer class="controls">
+      <button id="btn-repeat" class="btn" disabled>🔁 Repeat</button>
+      <button id="btn-next" class="btn" disabled>✓ Mark Complete</button>
+      <button id="btn-reset" class="btn btn-ghost">⟲ Reset</button>
+    </footer>
+    <div class="legal">DEMO / TRAINING ONLY — NOT FOR ACTUAL FLIGHT OPERATIONS</div>
+  </div>
+
+  <div id="unsupported" class="unsupported hidden">
+    <div>
+      <h2>Speech recognition not available</h2>
+      <p>This demo uses the browser <b>Web Speech API</b>, which works best in
+      <b>Google Chrome</b> or <b>Microsoft Edge</b> on desktop. Please open this page there.
+      You can still navigate the checklists with the on-screen buttons.</p>
+    </div>
+  </div>
+
+  <script src="checklists.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
