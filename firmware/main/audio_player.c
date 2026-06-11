@@ -107,3 +107,10 @@ esp_err_t audio_play_clip(const char *basename)
 }
 
 esp_err_t audio_play_ui(const char *name) { return audio_play_clip(name); }
+
+esp_err_t audio_play_path(const char *path)
+{
+    esp_err_t e = play_path(path);
+    if (e != ESP_OK) ESP_LOGW(TAG, "clip not found: %s", path);
+    return e;
+}

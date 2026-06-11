@@ -22,9 +22,20 @@ OUT = os.path.join(os.path.dirname(__file__), "..", "audio")
 
 # basename -> spoken text. Keep in sync with checklists.c read_clip values.
 TEXT = {
-    # UI
+    # ---- UI / annunciation clips (flashed into internal SPIFFS) ----
+    # These must always be available even with NO SD card, so the device can
+    # still annunciate a fault audibly. The firmware plays them via
+    # audio_play_ui()/audio_play_clip(), which look in /spiffs first.
     "ready":    "State the emergency.",
     "complete": "Checklist complete.",
+    # Fault annunciation — "fault" is the generic tone played on ANY fault;
+    # the specific cause clips are played additionally when a card is present.
+    "fault":             "Voice checklist fault. Checklists unavailable.",
+    "fault_no_card":     "No memory card detected.",
+    "fault_no_aircraft": "No aircraft configuration found on the card.",
+    "fault_load_error":  "Checklist data could not be loaded.",
+    "fault_audio":       "A checklist audio file is missing.",
+    # ---- checklist item clips (these belong on the SD aircraft folder) ----
     # Engine fire
     "engine_fire_1": "Throttle, affected engine, idle.",
     "engine_fire_2": "Engine fire button, lift cover and push.",

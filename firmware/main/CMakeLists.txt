@@ -1,7 +1,7 @@
 idf_component_register(
-    SRCS "main.c" "checklists.c" "audio_player.c"
+    SRCS "main.c" "checklists.c" "audio_player.c" "checklist_store.c" "annunciator.c"
     INCLUDE_DIRS "."
-    REQUIRES esp-sr esp_spiffs driver
+    REQUIRES esp-sr esp_spiffs driver json fatfs sdmmc esp_driver_sdmmc
 )
 
 # Flash the audio clips (built by scripts/make_audio.py into ../audio) into a

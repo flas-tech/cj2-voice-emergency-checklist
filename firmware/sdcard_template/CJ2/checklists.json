@@ -1,0 +1,565 @@
+{
+  "aircraft": "CJ2",
+  "title": "Cessna Citation CJ2 (CE 525A)",
+  "universal_advance": [
+    "check",
+    "checked",
+    "complete",
+    "next"
+  ],
+  "checklists": [
+    {
+      "id": "engine_fire",
+      "title": "Engine Fire",
+      "type": "emergency",
+      "triggers": [
+        "engine fire",
+        "fire warning"
+      ],
+      "items": [
+        {
+          "clip": "engine_fire_1",
+          "text": "Throttle, affected engine, idle.",
+          "advance": [
+            "idle"
+          ]
+        },
+        {
+          "clip": "engine_fire_2",
+          "text": "Engine fire button, lift cover and push.",
+          "advance": [
+            "push",
+            "pushed"
+          ]
+        },
+        {
+          "clip": "engine_fire_3",
+          "text": "Either illuminated bottle armed button, push.",
+          "advance": [
+            "push",
+            "pushed",
+            "armed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "takeoff_rejected",
+      "title": "Takeoff Rejected \u2014 Below V1",
+      "type": "emergency",
+      "triggers": [
+        "takeoff rejected",
+        "abort takeoff",
+        "speed below v one"
+      ],
+      "items": [
+        {
+          "clip": "rej_1",
+          "text": "Brakes, as required.",
+          "advance": [
+            "as required",
+            "required"
+          ]
+        },
+        {
+          "clip": "rej_2",
+          "text": "Throttles, idle.",
+          "advance": [
+            "idle"
+          ]
+        },
+        {
+          "clip": "rej_3",
+          "text": "Speed brakes, extend.",
+          "advance": [
+            "extend",
+            "extended"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "takeoff_continued",
+      "title": "Takeoff Continued \u2014 Above V1",
+      "type": "emergency",
+      "triggers": [
+        "takeoff continued",
+        "speed above v one"
+      ],
+      "items": [
+        {
+          "clip": "cont_1",
+          "text": "Maintain directional control.",
+          "advance": [
+            "control",
+            "maintained"
+          ]
+        },
+        {
+          "clip": "cont_2",
+          "text": "Accelerate to V R.",
+          "advance": [
+            "accelerating",
+            "rotate speed"
+          ]
+        },
+        {
+          "clip": "cont_3",
+          "text": "Rotate at V R, climb at V two.",
+          "advance": [
+            "rotate",
+            "climbing"
+          ]
+        },
+        {
+          "clip": "cont_4",
+          "text": "Landing gear up, after positive rate of climb.",
+          "advance": [
+            "up",
+            "gear up"
+          ]
+        },
+        {
+          "clip": "cont_5",
+          "text": "At fifteen hundred feet, retract flaps, then accelerate.",
+          "advance": [
+            "flaps up",
+            "accelerating"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "engine_fail_final",
+      "title": "Engine Failure During Final Approach",
+      "type": "emergency",
+      "triggers": [
+        "engine failure final approach",
+        "engine failure approach"
+      ],
+      "items": [
+        {
+          "clip": "fin_1",
+          "text": "Thrust, operating engine, increase as required.",
+          "advance": [
+            "increased",
+            "as required"
+          ]
+        },
+        {
+          "clip": "fin_2",
+          "text": "Airspeed, V approach.",
+          "advance": [
+            "v approach",
+            "set"
+          ]
+        },
+        {
+          "clip": "fin_3",
+          "text": "Flaps, takeoff and approach.",
+          "advance": [
+            "set",
+            "flaps set"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "emergency_restart",
+      "title": "Emergency Restart \u2014 Two Engines",
+      "type": "emergency",
+      "triggers": [
+        "emergency restart",
+        "engine restart",
+        "restart engines"
+      ],
+      "items": [
+        {
+          "clip": "res_1",
+          "text": "Ignition switches, both on.",
+          "advance": [
+            "both on",
+            "on"
+          ]
+        },
+        {
+          "clip": "res_2",
+          "text": "Left and right fuel boost switches, both on.",
+          "advance": [
+            "both on",
+            "on"
+          ]
+        },
+        {
+          "clip": "res_3",
+          "text": "Throttles, idle.",
+          "advance": [
+            "idle"
+          ]
+        },
+        {
+          "clip": "res_4",
+          "text": "If altitude allows, increase airspeed to two hundred knots.",
+          "advance": [
+            "increased",
+            "set"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "electrical_fire",
+      "title": "Electrical Fire or Smoke",
+      "type": "emergency",
+      "triggers": [
+        "electrical fire",
+        "electrical smoke",
+        "smoke removal",
+        "cabin smoke"
+      ],
+      "items": [
+        {
+          "clip": "elec_1",
+          "text": "Oxygen masks, don and emergency.",
+          "advance": [
+            "on",
+            "donned",
+            "emergency"
+          ]
+        },
+        {
+          "clip": "elec_2",
+          "text": "Microphone select switches, mic oxygen mask.",
+          "advance": [
+            "set",
+            "selected"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cabin_altitude",
+      "title": "Cabin Altitude",
+      "type": "emergency",
+      "triggers": [
+        "cabin altitude",
+        "cabin alt",
+        "depressurization"
+      ],
+      "items": [
+        {
+          "clip": "cab_1",
+          "text": "Oxygen masks, don and one hundred percent oxygen.",
+          "advance": [
+            "on",
+            "donned"
+          ]
+        },
+        {
+          "clip": "cab_2",
+          "text": "Microphone select switches, mic oxygen mask.",
+          "advance": [
+            "set",
+            "selected"
+          ]
+        },
+        {
+          "clip": "cab_3",
+          "text": "Emergency descent, as required.",
+          "advance": [
+            "as required",
+            "descending"
+          ]
+        },
+        {
+          "clip": "cab_4",
+          "text": "Passenger oxygen, make sure passengers are receiving oxygen.",
+          "advance": [
+            "confirmed",
+            "receiving"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "emergency_descent",
+      "title": "Emergency Descent",
+      "type": "emergency",
+      "triggers": [
+        "emergency descent",
+        "rapid descent"
+      ],
+      "items": [
+        {
+          "clip": "des_1",
+          "text": "Autopilot trim disconnect button, press and release.",
+          "advance": [
+            "pressed",
+            "released"
+          ]
+        },
+        {
+          "clip": "des_2",
+          "text": "Throttles, idle.",
+          "advance": [
+            "idle"
+          ]
+        },
+        {
+          "clip": "des_3",
+          "text": "Speed brakes, extend.",
+          "advance": [
+            "extend",
+            "extended"
+          ]
+        },
+        {
+          "clip": "des_4",
+          "text": "Airplane pitch attitude, approximately twenty degrees nose down.",
+          "advance": [
+            "nose down",
+            "set"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "battery_overtemp",
+      "title": "Battery Overtemperature",
+      "type": "emergency",
+      "triggers": [
+        "battery overtemp",
+        "battery overtemperature",
+        "batt o temp"
+      ],
+      "items": [
+        {
+          "clip": "bat_1",
+          "text": "Volt amp, note.",
+          "advance": [
+            "noted",
+            "note"
+          ]
+        },
+        {
+          "clip": "bat_2",
+          "text": "Battery switch, emergency.",
+          "advance": [
+            "emergency",
+            "set"
+          ]
+        },
+        {
+          "clip": "bat_3",
+          "text": "Volt amp, note decrease.",
+          "advance": [
+            "noted",
+            "decreasing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "autopilot_malfunction",
+      "title": "Autopilot Malfunction",
+      "type": "emergency",
+      "triggers": [
+        "autopilot malfunction",
+        "autopilot failure"
+      ],
+      "items": [
+        {
+          "clip": "ap_1",
+          "text": "Autopilot trim disconnect button, press and release.",
+          "advance": [
+            "pressed",
+            "released"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trim_runaway",
+      "title": "Electric Elevator Trim Runaway",
+      "type": "emergency",
+      "triggers": [
+        "trim runaway",
+        "elevator trim runaway",
+        "elevator trim"
+      ],
+      "items": [
+        {
+          "clip": "trim_1",
+          "text": "Autopilot trim disconnect button, press and release.",
+          "advance": [
+            "pressed",
+            "released"
+          ]
+        },
+        {
+          "clip": "trim_2",
+          "text": "Throttles, as required.",
+          "advance": [
+            "as required",
+            "set"
+          ]
+        },
+        {
+          "clip": "trim_3",
+          "text": "Speed brakes, as required.",
+          "advance": [
+            "as required",
+            "set"
+          ]
+        },
+        {
+          "clip": "trim_4",
+          "text": "Manual elevator trim, as required.",
+          "advance": [
+            "as required",
+            "set"
+          ]
+        },
+        {
+          "clip": "trim_5",
+          "text": "Pitch trim circuit breaker, left panel, pull.",
+          "advance": [
+            "pull",
+            "pulled"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "emergency_evacuation",
+      "title": "Emergency Evacuation",
+      "type": "emergency",
+      "triggers": [
+        "emergency evacuation",
+        "evacuate",
+        "evacuation"
+      ],
+      "items": [
+        {
+          "clip": "evac_1",
+          "text": "Parking brake, set.",
+          "advance": [
+            "set"
+          ]
+        },
+        {
+          "clip": "evac_2",
+          "text": "Throttles, both off.",
+          "advance": [
+            "both off",
+            "off"
+          ]
+        },
+        {
+          "clip": "evac_3",
+          "text": "Left and right engine fire buttons, both press.",
+          "advance": [
+            "both press",
+            "pressed"
+          ]
+        },
+        {
+          "clip": "evac_4",
+          "text": "Illuminated bottle armed buttons, both press, if fire suspected.",
+          "advance": [
+            "both press",
+            "pressed"
+          ]
+        },
+        {
+          "clip": "evac_5",
+          "text": "Battery switch, off.",
+          "advance": [
+            "off"
+          ]
+        },
+        {
+          "clip": "evac_6",
+          "text": "Emergency locator transmitter, make sure the system is activated.",
+          "advance": [
+            "activated",
+            "confirmed"
+          ]
+        },
+        {
+          "clip": "evac_7",
+          "text": "Airplane and immediate area, check for the best escape route.",
+          "advance": [
+            "checked",
+            "confirmed"
+          ]
+        },
+        {
+          "clip": "evac_8",
+          "text": "If exiting through the cabin door, open it. If through the emergency exit, remove and throw the door clear.",
+          "advance": [
+            "cabin door",
+            "emergency exit"
+          ]
+        },
+        {
+          "clip": "evac_9",
+          "text": "Move away from the airplane. Procedure complete.",
+          "advance": [
+            "clear",
+            "complete"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "before_start",
+      "title": "Before Start",
+      "type": "normal",
+      "triggers": [
+        "before start",
+        "before engine start"
+      ],
+      "items": [
+        {
+          "clip": "bs_1",
+          "text": "Parking brake, set.",
+          "advance": [
+            "set"
+          ]
+        },
+        {
+          "clip": "bs_2",
+          "text": "Seat belts, fasten.",
+          "advance": [
+            "fastened",
+            "set"
+          ]
+        },
+        {
+          "clip": "bs_3",
+          "text": "Battery switch, on.",
+          "advance": [
+            "on"
+          ]
+        },
+        {
+          "clip": "bs_4",
+          "text": "Fuel quantity, check.",
+          "advance": [
+            "checked",
+            "check"
+          ]
+        },
+        {
+          "clip": "bs_5",
+          "text": "Flight controls, free and correct.",
+          "advance": [
+            "free and correct",
+            "checked"
+          ]
+        }
+      ]
+    }
+  ]
+}
