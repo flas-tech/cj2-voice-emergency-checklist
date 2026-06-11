@@ -12,8 +12,17 @@
 The pilot states an emergency by name; the device reads each checklist item aloud and
 waits for a spoken completion word before advancing. It runs entirely on-device (no
 cloud, no Wi-Fi). **The product itself is aircraft-agnostic** — all aircraft-specific
-behavior comes from the **Aircraft Card** that is installed (Part B). The Cessna Citation
-CJ2 is included only as the reference example card.
+behavior comes from the installed cards (Part B). The Cessna Citation
+CJ2 is included only as the reference example.
+
+**Crew audio is taken from the aircraft audio panel** (analog or digital, selectable per
+installation), and recognition is **voice-activated (VOX)** by default — the pilot simply
+speaks, with a push-to-talk (PTT) button retained as a manual override. **Configuration
+and checklist data live on two separate cards** — a write-protected **Config Card** that
+defines the installation (aircraft selection, audio source, VOX behavior, hardware
+options) and a **Data Card** that carries the checklist library and audio. This two-card,
+audio-panel-fed design is a deliberate change from the earlier onboard-microphone /
+single-card demo and carries certification consequences addressed honestly in Part C.
 
 **This master reference supersedes and combines** the previously separate documents:
 the technical data packet, the processor-selection note, and the enclosure specification.
@@ -26,10 +35,10 @@ Those remain in the repository for history; this is the single source of truth.
 | Part | Contents |
 |---|---|
 | **A. Product** | What the system is, the generic architecture, and the safety model |
-| **B. Aircraft Card** | The card-defines-everything model + the formal card specification & validation |
-| **C. Certification basis** | NORSEE / DO-160G / installation path, and the deliberate DO-178C-avoidance argument |
-| **D. Hardware reference** | Pin map, per-device wiring, annunciator, lamp driver, power, BOM, processor selection |
-| **E. Enclosure** | Two-piece mechanical specification for the fabricating engineer |
+| **B. The cards** | The two-card (Config + Data) model + the formal card specifications & validation |
+| **C. Certification basis** | NORSEE / DO-160G / installation path, the deliberate DO-178C-avoidance argument, and the audio-panel-interface impact |
+| **D. Hardware reference** | Pin map, audio-input stage, VOX/PTT, per-device wiring, annunciator, lamp driver, power, BOM, processor selection |
+| **E. Enclosure** | Two-piece mechanical specification (dual card slots, isolated audio interface) for the fabricating engineer |
 | **F. References** | All cited regulatory and component sources |
 
 ---
@@ -41,79 +50,142 @@ Those remain in the repository for history; this is the single source of truth.
 | It **is** | It **is not** |
 |---|---|
 | An **advisory** read-aloud reader of checklist items | A required or primary aircraft system |
-| **Independent** — no electrical/data tie to any aircraft system | An interface to avionics, engines, or controls |
-| Driven entirely by an installed **Aircraft Card** | Tied to one airframe in firmware |
+| **Receive-only** on a single audio tap; no command/data to any aircraft system | A transmitter, a panel control, or an interface to avionics/engines/controls |
+| Driven entirely by the installed **Config Card + Data Card** | Tied to one airframe in firmware |
 | **Offline**, deterministic, single-chip | A cloud / connected / large-vocabulary STT device |
 | A **complement** to the certified/required checklist | A substitute for the AFM/QRH or required checklist |
 
 This framing is not cosmetic — it is the foundation of the certification argument in
-Part C. A device that is non-required, advisory-only, independent of primary systems, and
-fails to a clearly-annunciated safe state is the textbook profile for the **NORSEE**
-(Non-Required Safety Enhancing Equipment) approval path, and it is what lets the program
-**lean on DO-160G environmental qualification while avoiding DO-178C software assurance.**
+Part C. A device that is non-required, advisory-only, fails to a clearly-annunciated safe
+state, and connects to the aircraft only through a **galvanically-isolated, receive-only**
+audio tap is the profile that fits the **NORSEE** (Non-Required Safety Enhancing
+Equipment) approval path and that lets the program **lean on DO-160G environmental
+qualification while avoiding DO-178C software assurance.** Note that the audio-panel tap
+is a **wired interface to an aircraft system** — it deliberately trades the old
+"electrically independent" claim for a weaker but defensible "receive-only, isolated"
+posture. Part C addresses this honestly; it is the most significant certification change
+in this revision.
 
 ## A.2 Generic system architecture
 
-| Block | Function | Aircraft-specific? |
+| Block | Function | Installation-/aircraft-specific? |
 |---|---|---|
-| **MCU + speech stack** | Wake word → command recognition → playback sequencing | No — fixed firmware |
-| **Microphone (I2S)** | Captures crew speech for recognition | No |
-| **Speaker + amplifier (I2S)** | Reads checklist items / annunciations aloud | No |
-| **microSD (the Aircraft Card)** | Carries aircraft ID, checklist library, audio, config, validation | **Yes — this is the only aircraft-specific element** |
-| **Annunciator switch** | Dark-cockpit status / fault indication, IN/OUT select | No |
+| **MCU + speech stack** | VOX/wake word → command recognition → playback sequencing | No — fixed firmware |
+| **Audio-panel input stage** | Takes crew speech **from the aircraft audio panel** — analog (isolated line tap) or digital (I2S codec), selectable per install | **Config-driven** — the source is set by the Config Card; the hardware path is wired at install |
+| **Speaker + amplifier (I2S)** | Reads checklist items / annunciations aloud (own speaker; not fed back to the panel) | No |
+| **Config Card (microSD, slot 1)** | Defines the installation: active aircraft, audio source (analog/digital), VOX parameters, hardware options | **Yes — per installation** |
+| **Data Card (microSD, slot 2)** | Carries the checklist library, trigger/advance vocabulary, and read-aloud audio | **Yes — per aircraft** |
+| **Annunciator switch** | Dark-cockpit status / fault indication, IN/OUT select, PTT override | No |
 
 The MCU runs Espressif **ESP-SR** (AFE noise-suppression/VAD → WakeNet wake word →
-MultiNet fixed-grammar command recognition). The grammar (trigger phrases, advance words)
-is small and bounded, which is what keeps an MCU-class part in scope (see D.7).
+MultiNet fixed-grammar command recognition). The **AFE's voice-activity detector (VAD) is
+what enables hands-free VOX**: the pilot speaks and the device gates recognition on detected
+speech, with the PTT button retained as a manual override (force-listen). The grammar
+(trigger phrases, advance words) is small and bounded, which is what keeps an MCU-class part
+in scope (see D.7).
+
+The crew-audio source is **no longer an onboard microphone in the operational design** — it
+is a tap off the aircraft audio panel. An onboard MEMS microphone is retained only as a
+documented **bench-test** option (D.3), never as the installed audio source.
 
 ## A.3 The safety model (carried into the cert argument)
 
 Three design rules define the failure behavior, and each one maps to a NORSEE requirement
 (Part C):
 
-1. **Revert-to-unopened.** If the card is missing, unreadable, malformed, fails schema
-   validation, or any referenced audio clip is absent, the device **refuses to present any
-   checklist** and enters a clearly-annunciated FAULT state. It never shows partial or
-   stale data. *(Failure mode = loss of function, not misleading information.)*
+1. **Revert-to-unopened.** If **either card** is missing, unreadable, malformed, fails
+   schema validation, or any referenced audio clip is absent — or the Config Card and Data
+   Card disagree on the active aircraft — the device **refuses to present any checklist** and
+   enters a clearly-annunciated FAULT state. It never shows partial or stale data.
+   *(Failure mode = loss of function, not misleading information.)*
 2. **Dark-cockpit annunciation.** When selected IN and healthy, the unit shows **nothing**.
    A fault lights the amber FAULT legend. Selected OUT shows the white OFF status and
    **inhibits** the fault legend (a deliberately deselected system needs no crew action).
    A power-up lamp test proves the legend is alive.
-3. **Independence.** The device draws power and nothing else from the aircraft; it neither
-   reads from nor writes to any aircraft system. Loss of the device cannot affect any
-   primary function.
+3. **Receive-only, isolated interface.** The device's only tie to an aircraft system is the
+   **audio-panel input**, and that tie is **one-way (listen) and galvanically isolated** (see
+   C.3a, D.3.1): a high-impedance, isolation-transformer-coupled tap for the analog path, or
+   a buffered receive-only feed for the digital path. The unit **cannot transmit, key, mute,
+   or back-feed** the panel, and it still draws power on its own protected rail. A short,
+   open, or failure of the device cannot affect audio-panel function. This replaces the
+   former "no electrical tie at all" claim with a narrower, testable one — and it is the
+   crux of the Part C argument.
 
 ---
 
-# PART B — THE AIRCRAFT CARD (card defines everything)
+# PART B — THE TWO CARDS (configuration + data)
 
 ## B.1 Principle
 
-> **The product is generic. The installed card makes it a specific aircraft's checklist
-> reader.** To support a new airframe — King Air, PC-12, TBM, another Citation — you
-> author a new card. **No firmware change, no recompile, no hardware change.**
+> **The product is generic. The two installed cards make it a specific aircraft's checklist
+> reader, installed a specific way.** Responsibility is split: the **Config Card** describes
+> *this installation* (which aircraft, which audio source, how VOX behaves, what hardware is
+> fitted); the **Data Card** carries *the checklist content* (library, vocabulary, audio).
+> To support a new airframe you author a new Data Card; to re-use it in a different aircraft
+> or wiring you change only the Config Card. **No firmware change, no recompile.**
 
-Everything that varies by aircraft lives on the card: the aircraft identity, the checklist
-library (titles, trigger phrases, ordered items, per-item completion/advance words), the
-read-aloud audio, and the universal advance vocabulary. The firmware contains only the
-generic engine that loads, validates, and plays whatever a valid card provides.
+Why two cards? Configuration is **installation-controlled** (set by the installer/shop and
+locked) while checklist data is **content-controlled** (authored from the AFM/QRH and revised
+as the source revises). Separating them keeps a content revision from silently changing the
+installation's audio/VOX setup, and lets a write-protected Config Card serve as the
+configuration-control record the FAA expects under NORSEE (Part C). Both cards are
+microSD/FAT32 and sit in **two physical slots** (slot 1 = CONFIG, slot 2 = DATA; see E.3).
 
-## B.2 Card layout (microSD, FAT32)
+## B.2 Config Card (slot 1) — layout & schema
 
 ```
-/sdcard/
-  config.txt                 (optional) one line: AIRCRAFT=<FOLDER>
+/sdcard-config/   (slot 1, microSD, FAT32)
+  config.json     the single installation-configuration manifest
+```
+
+`config.json` top-level object:
+
+| Field | Type | Req. | Meaning |
+|---|---|---|---|
+| `schema_version` | integer | rec. | Config-schema version the firmware validates against |
+| `aircraft` | string | **yes** | Active aircraft id; **must match** a folder on the Data Card |
+| `audio_source` | string | **yes** | `analog` or `digital` — selects the audio-panel input path (D.3.1) |
+| `audio` | object | **yes** | Audio-input parameters (below) |
+| `vox` | object | **yes** | VOX behavior (below) |
+| `hardware` | object | opt. | Fitted-hardware options (codec part, legend rail, PTT present, etc.) |
+| `install` | object | rec. | Provenance: shop, installer, date, work-order (configuration control) |
+
+`audio` object:
+
+| Field | Type | Req. | Meaning |
+|---|---|---|---|
+| `input_gain_db` | number | rec. | Input trim for the line-level tap (typ. 0–6 dB) |
+| `codec` | string | when `digital` | I2S codec fitted (e.g. `es8388`, `es7210`, `pcm1808`) |
+| `sample_rate_hz` | integer | rec. | 16000 for ESP-SR |
+
+`vox` object:
+
+| Field | Type | Req. | Meaning |
+|---|---|---|---|
+| `mode` | string | **yes** | `vox` (default, hands-free) or `ptt_only` (override-only) |
+| `vad_sensitivity` | integer | rec. | AFE VAD aggressiveness 0–3 (higher = less false-trigger, may clip onset) |
+| `hangover_ms` | integer | rec. | How long to keep listening after speech stops (debounce, typ. 300–600 ms) |
+| `ptt_override` | boolean | rec. | `true` keeps PTT as a force-listen override even in `vox` mode |
+
+- **`ptt_only` mode** disables VOX and reverts to the legacy push-to-talk behavior.
+- A Config Card whose `aircraft` has no matching Data Card folder is a fault
+  (`FAULT_AIRCRAFT_MISMATCH`), not a silent guess.
+
+## B.3 Data Card (slot 2) — layout
+
+```
+/sdcard-data/   (slot 2, microSD, FAT32)
   <FOLDER>/                  one folder per aircraft (e.g. CJ2, B200, PC12)
-    checklists.json          the card manifest + checklist library
+    checklists.json          the data manifest + checklist library
     audio/
       <clip>.wav             one read-aloud clip per referenced item + fault clips
 ```
 
-- **Auto-select:** if exactly one aircraft folder is present, it loads automatically.
-- **Explicit select:** if multiple folders exist, `config.txt` names the active one. A
-  missing/invalid target is a fault (revert-to-unopened), not a silent guess.
+- The firmware loads the folder named by the **Config Card's** `aircraft` field. (If no
+  Config Card is present at all, that is `FAULT_NO_CONFIG` — the device does **not** fall back
+  to guessing a folder.)
 
-## B.3 Card manifest schema (`checklists.json`)
+## B.3a Data Card manifest schema (`checklists.json`)
 
 Top-level object:
 
@@ -152,39 +224,49 @@ validator rejects a card that violates them (revert-to-unopened):
 - Keep the **total command count modest** (well under the ~200-command MultiNet cap).
 - Every `clip` referenced by any item **must** exist as `audio/<clip>.wav`.
 
-## B.4 Card validation & the revert-to-unopened rule
+## B.4 Two-card validation & the revert-to-unopened rule
 
-On boot the firmware attempts a **complete, valid** load and returns exactly one status:
+On boot the firmware attempts a **complete, valid** load of **both cards** and returns
+exactly one status. Both cards must be present, valid, and **mutually consistent** (the
+Config Card's `aircraft` must resolve to a Data Card folder):
 
-| Status | Meaning | Annunciation |
-|---|---|---|
-| `STORE_OK` | SD mounted, JSON parsed + schema-valid, **every** audio clip present | dark (healthy) |
-| `FAULT_NO_CARD` | SD not detected / mount failed | amber FAULT |
-| `FAULT_NO_AIRCRAFT` | No aircraft folder, or `config.txt` target missing | amber FAULT |
-| `FAULT_NO_JSON` | `checklists.json` missing / unreadable | amber FAULT |
-| `FAULT_PARSE` | JSON malformed | amber FAULT |
-| `FAULT_VALIDATION` | Schema or voice-rule violation, empty data | amber FAULT |
-| `FAULT_AUDIO_MISSING` | A referenced clip is absent | amber FAULT |
-| `FAULT_NO_MEMORY` | Allocation failed while loading | amber FAULT |
+| Status | Card | Meaning | Annunciation |
+|---|---|---|---|
+| `STORE_OK` | both | Both cards mounted, both manifests parsed + schema-valid, **every** audio clip present, aircraft consistent | dark (healthy) |
+| `FAULT_NO_CONFIG` | config | Config Card not detected / `config.json` missing / unreadable | amber FAULT |
+| `FAULT_CONFIG_PARSE` | config | `config.json` malformed | amber FAULT |
+| `FAULT_CONFIG_VALIDATION` | config | Config schema / value violation (bad `audio_source`, bad `vox.mode`, missing required field) | amber FAULT |
+| `FAULT_NO_CARD` | data | Data Card not detected / mount failed | amber FAULT |
+| `FAULT_AIRCRAFT_MISMATCH` | both | Config `aircraft` has no matching Data Card folder | amber FAULT |
+| `FAULT_NO_JSON` | data | `checklists.json` missing / unreadable | amber FAULT |
+| `FAULT_PARSE` | data | Data JSON malformed | amber FAULT |
+| `FAULT_VALIDATION` | data | Data schema or voice-rule violation, empty data | amber FAULT |
+| `FAULT_AUDIO_MISSING` | data | A referenced clip is absent | amber FAULT |
+| `FAULT_NO_MEMORY` | — | Allocation failed while loading | amber FAULT |
 
 **On any FAULT the in-memory checklist table is left EMPTY** — the device cannot present a
 partial or stale checklist even if asked. This is the literal implementation of "always
-revert to unopened if files are not available."
+revert to unopened if files are not available." The boot order is **Config Card first**
+(it names the aircraft and the audio source the input stage must initialize), then the
+matching Data Card folder.
 
-## B.5 Card integrity & provenance (recommended for a productized card)
+## B.5 Card integrity & provenance (recommended for productized cards)
 
-For a card that drives a *safety-enhancing* device, integrity matters as much as schema
+For cards that drive a *safety-enhancing* device, integrity matters as much as schema
 validity. Recommended additions (forward-looking, beyond the current demo):
 
-- **Schema version gate** — firmware refuses a card whose `schema_version` it does not
+- **Schema version gate** — firmware refuses either card whose `schema_version` it does not
   support, rather than mis-parsing it.
 - **Manifest checksum / signature** — a per-card hash (and, for production, a signature)
-  so a corrupted or tampered card is rejected as `FAULT_VALIDATION`.
-- **Content provenance** — record, per card, the AFM/QRH source revision the checklist
-  text was transcribed from, the author, and the date. Advisory equipment is only as good
-  as the source it mirrors; provenance is part of the configuration-control story the FAA
-  expects under NORSEE (Part C).
-- **Read-only media** — distribute production cards write-protected.
+  so a corrupted or tampered card is rejected (`FAULT_CONFIG_VALIDATION` / `FAULT_VALIDATION`).
+- **Content provenance (Data Card)** — record the AFM/QRH source revision the checklist
+  text was transcribed from, the author, and the date.
+- **Installation provenance (Config Card)** — the `install` object records shop, installer,
+  date, and work-order. The Config Card is the per-tail **configuration-control record** the
+  FAA expects under NORSEE (Part C): it documents *how this specific aircraft was set up*,
+  including the audio source and VOX behavior.
+- **Read-only media** — distribute production cards write-protected; the Config Card in
+  particular should be **locked after installation** so configuration cannot drift in service.
 
 ---
 
@@ -251,9 +333,14 @@ nothing formal** — provided the architecture earns it. The argument has four l
    the required checklist. Neither failure reduces the crew's ability to cope with a
    condition worse than minor — the NORSEE safety-evaluation test. *[Source: PS-AIR-21.8-1602
    §1.4.]*
-3. **Independence.** No input from or output to any primary system; physical and electrical
-   separation. This is one of the design considerations the policy lists for keeping a
-   failure minor. *[Source: PS-AIR-21.8-1602 §1.4.]*
+3. **Bounded interface (not full independence).** This revision adds **one** tie to an
+   aircraft system: a **receive-only, galvanically-isolated** audio tap off the audio panel
+   (C.3a). The device takes **no input that commands a function and produces no output to any
+   aircraft system** — it only listens. Physical/electrical separation is preserved on the
+   power and signal-return side by the isolation barrier. This is a **weaker claim than the
+   former "no electrical tie at all,"** and it is called out as such; the argument now rests
+   on *directionality + isolation* rather than *total separation*. *[Source: PS-AIR-21.8-1602
+   §1.4 — design considerations for keeping a failure minor.]*
 4. **Qualitative safety evaluation is permitted** for non-complex equipment; a quantitative
    probabilistic analysis (and the DO-178C machinery that feeds it) is not required for a
    minor-failure advisory function. *[Source: PS-AIR-21.8-1602 §1.4.]*
@@ -261,12 +348,71 @@ nothing formal** — provided the architecture earns it. The argument has four l
 **Honest caveats (must stay in the doc):**
 - This argument **must be agreed with the FAA ACO early** — the applicant proposes the
   classification; the FAA concurs. If the FAA judges the failure condition above minor (e.g.
-  because of over-reliance/automation-dependency human factors), the program moves to
+  because of over-reliance/automation-dependency human factors, **or because the audio-panel
+  interface is judged to compromise an aircraft communication system**), the program moves to
   **§2 of the NORSEE policy** (xx.1309, ARP4754A/ARP4761) and software assurance re-enters.
 - "No DO-178C" is **earned by architecture and by procedural mitigations**, not by labeling.
   The revert-to-unopened behavior, the validation gate, the dark-cockpit annunciation, the
-  independence, and a **mandatory limitation that the unit may not be used as a substitute
-  for the required checklist** are the price of that classification.
+  **receive-only isolated interface**, and a **mandatory limitation that the unit may not be
+  used as a substitute for the required checklist** are the price of that classification.
+- **The audio-panel tap raises the installation bar.** What was arguably a minor alteration
+  (a self-contained box drawing only power) now wires into an **aircraft communication
+  system**. That makes an STC (or at minimum careful field-approval scrutiny of the interface)
+  the more likely installation path on most airframes — see C.3a and C.5. Do not assume a
+  logbook-entry minor alteration any more.
+- **VOX adds a human-factors failure mode.** Hands-free activation can **false-trigger** on
+  ambient cockpit speech, ATC audio, or crew conversation, potentially reading a checklist
+  the crew did not request. This is a *misleading/nuisance* mode the ACO will scrutinize; it
+  is mitigated by VAD sensitivity tuning, a bounded wake/trigger grammar, the retained PTT
+  override, and the standing limitation that the required checklist remains the authority
+  (C.3a, D.3.2).
+
+## C.3a Audio-panel interface impact (the honest part)
+
+Tapping the **aircraft audio panel** is the single biggest certification change in this
+revision. It must be argued explicitly, because it directly **weakens the independence leg**
+of C.3 and changes the installation classification. The goal is to make the interface so
+narrow and so demonstrably one-way that the residual failure stays minor.
+
+**What the interface is — and is not:**
+
+| Property | Design commitment |
+|---|---|
+| **Directionality** | **Receive-only.** The device has no path to transmit, key a radio, mute, or inject audio into the panel. There is no DAC, line-driver, or PTT line going *to* the panel. |
+| **Isolation (analog path)** | A **600 Ω aviation audio ground-loop isolation transformer** (e.g. Allen Avionics AGL series) provides galvanic isolation between the panel and the device; high-impedance, line-level tap through a series resistor so the device is a negligible load. |
+| **Isolation (digital path)** | A buffered, receive-only I2S input from a codec ADC fed by the same isolated/high-impedance tap; no clock or data driven back toward any aircraft bus. |
+| **Fault containment** | A short, open, or power loss inside the device cannot load down, ground, or back-feed the panel — the isolation barrier and high-impedance tap see to that. |
+| **No operational credit** | The panel feed is *listened to* for recognition only; it is never relied on for any aircraft function. |
+
+**Why this still supports a minor classification:**
+- The audio panel and intercom **continue to function identically whether the device is
+  present, powered, or failed** — the tap is parallel and high-impedance.
+- The failure modes the tap could plausibly add (loading, ground loop, injected noise) are
+  **removed by isolation and the receive-only topology**, and are exactly what **DO-160G
+  conducted/induced-susceptibility and the audio-system installation tests** are meant to
+  verify (C.4).
+- This is analogous to other **listen-only** cockpit aids (cockpit voice recorders,
+  audio-logging headsets) that tap audio without compromising the source.
+
+**Why it nonetheless raises the bar (do not gloss over this):**
+- The interface now touches an **aircraft communication system**, so the installation will
+  in most cases be evaluated as a change that affects that system — pushing the path toward
+  **STC / careful field approval** rather than a simple logbook minor alteration (C.5).
+- The ACO may require **substantiation that the tap does not degrade comm audio** (intercom
+  level, sidetone, hot-mic/VOX behavior of the *panel's own* circuits) under all conditions,
+  including device failure.
+- Audio-panel wiring practice matters: many panels **ground audio jacks only at the intercom**
+  to avoid ground loops, so the tap point and shield grounding must be coordinated with the
+  specific panel's installation manual.
+
+**VOX (voice-activation) certification note.** Replacing push-to-talk with VOX as the
+primary trigger introduces a **false-activation human-factors mode** (reading an unrequested
+checklist on stray speech/ATC audio). Mitigations carried into the design: bounded
+wake-word + trigger grammar (not open-vocabulary), tunable VAD sensitivity and hangover
+(Config Card, B.2), the **retained PTT override**, and the standing limitation that the
+required checklist remains the authority. The ACO will want this mode addressed in the
+safety/human-factors evaluation. *[Source: PS-AIR-21.8-1602 §1.4; FAA AC 25-11B human-factors
+conventions.]*
 
 ## C.4 DO-160G environmental qualification plan
 
@@ -283,8 +429,8 @@ targets**, not completed tests. *[Source: RTCA/DO-160G; FAA AC 21-16G.]*
 | §15 Magnetic Effect | Class Z | Small device; classify by measured deflection |
 | §16 Power Input | per installation (e.g. 28 VDC) | Only if a 28 V variant is built; TVS + fuse |
 | §17 Voltage Spike | Cat A | Input transient protection |
-| §18 AF Conducted Susceptibility | Cat — | As applicable to the chosen supply |
-| §19 Induced Signal Susceptibility | Cat ZC | Cockpit |
+| §18 AF Conducted Susceptibility | Cat — | As applicable to the supply; **also relevant to the audio-panel input** — verify recognition is not corrupted by AF conducted noise |
+| §19 Induced Signal Susceptibility | Cat ZC | Cockpit; **audio-input cabling** routed/shielded per the panel's installation practice |
 | §20 RF Susceptibility | Cat — | Aluminum case + grounded shield |
 | §21 RF Emission | **Cat M** (or better) | **Wi-Fi/BT disabled in firmware** materially helps emissions |
 | §22 Lightning Induced Transient | as installed | Behind-panel mounting reduces exposure |
@@ -293,6 +439,13 @@ targets**, not completed tests. *[Source: RTCA/DO-160G; FAA AC 21-16G.]*
 
 > The deliberate choice to **disable Wi-Fi and Bluetooth in firmware** is both a security
 > decision and an emissions-qualification advantage (§21).
+
+> **Audio-interface-specific evidence (beyond the table):** because the unit now taps the
+> audio panel, qualification should additionally demonstrate that — across all DO-160G
+> conditions and **including a failed/unpowered device** — the tap does not degrade
+> audio-panel performance (intercom level, sidetone, the panel's own VOX/hot-mic behavior).
+> The isolation transformer and high-impedance receive-only topology (C.3a) are the design
+> basis for that demonstration.
 
 ## C.5 Approval & installation path (per airframe)
 
@@ -313,6 +466,14 @@ chain for a Part 23/27/29 airframe:
      integration): **STC** or field-approval path. *[Source: PS-AIR-21.8-1602; FAA STC/PMA
      guidance.]*
 5. **Part 25 aircraft** — skip NORSEE; pursue **STC** for the installation (C.1.1).
+
+> **The audio-panel interface raises the install classification.** Because the device now
+> wires into an **aircraft communication system** (the audio panel), step 4 should be
+> approached assuming the interface makes the alteration **more than minor** on most airframes
+> — i.e. plan for an **STC or a field approval that specifically substantiates the audio tap**
+> (receive-only, isolated, no degradation of comm audio per C.3a/C.4), not a bare logbook
+> entry. The earlier power-only/independent design could credibly claim a minor alteration;
+> this one generally cannot.
 
 ### C.5.1 Where TSO and PMA fit (and don't, here)
 - **TSO authorization** is a *minimum-performance* design+production approval against a
@@ -351,7 +512,9 @@ manual:
 | Software assurance | **DO-178C not sought** — advisory/minor (C.3) | Architecture supports it; ACO concurrence pending |
 | Complex hardware | DO-254 not invoked (simple COTS) — AC 20-152A | N/A by design |
 | Human factors / color | AC 25-11B conventions, dark-cockpit | Implemented in design |
-| Installation | Minor alteration or STC, per airframe | Per-aircraft; none performed |
+| **Audio-panel interface** | Receive-only + galvanic isolation; no comm-audio degradation (C.3a, C.4 §18/§19) | Architecture defined; **substantiation/test pending** |
+| **VOX false-activation** | Bounded grammar + tunable VAD + retained PTT override (C.3a, D.3.2) | Mitigations defined; ACO human-factors concurrence pending |
+| Installation | **STC / substantiated field approval** (audio tap is more than minor); minor-alteration unlikely | Per-aircraft; none performed |
 | Part 25 airframes | STC (NORSEE excluded) | Flagged |
 
 ---
@@ -368,31 +531,39 @@ manual:
 |---|---|
 | MCU | **ESP32-S3** (dual-core LX7 @ 240 MHz) — **PSRAM required** by ESP-SR |
 | Recommended module | ESP32-S3-WROOM-1 **N16R8** (16 MB flash, 8 MB octal PSRAM) |
-| Speech stack | Espressif **ESP-SR**: AFE (NS/VAD) → WakeNet "Hi ESP" → MultiNet English |
-| Mic input | I2S MEMS microphone on **I2S_NUM_0** |
-| Audio output | I2S Class-D amplifier on **I2S_NUM_1** → 4–8 Ω speaker |
-| Config storage | **microSD** — the Aircraft Card (Part B), FAT32 |
+| Speech stack | Espressif **ESP-SR**: AFE (NS/**VAD → VOX**) → WakeNet "Hi ESP" → MultiNet English |
+| **Crew audio input** | **From the aircraft audio panel** on **I2S_NUM_0**, selectable per install: **analog** (isolated line tap → I2S codec ADC) or **digital** (I2S codec ADC fed from a buffered tap). Onboard MEMS mic = bench-test only |
+| Activation | **VOX** (AFE VAD) primary, hands-free; **PTT** retained as manual override |
+| Audio output | I2S Class-D amplifier on **I2S_NUM_1** → 4–8 Ω speaker (own speaker; not fed to the panel) |
+| Config storage | **two microSD slots** — slot 1 **Config Card**, slot 2 **Data Card** (Part B), FAT32 |
 | Annunciation | Applied Avionics split-legend switch (dark-cockpit, AC 25-11B) |
 
-Two build paths: **Integrated** (ESP32-S3-Korvo-2 dev board — on-board dual mic, ES8311
-codec, NS4150 amp, microSD slot; best mic performance) or **DIY** (ESP32-S3 DevKitC-1 N16R8
-+ INMP441 mic + MAX98357A amp + microSD breakout + the annunciator switch).
+Two build paths: **Integrated** (ESP32-S3-Korvo-2 dev board — ES8311/ES7210 codec, NS4150
+amp, microSD slot; line-in repurposed for the audio-panel feed) or **DIY** (ESP32-S3
+DevKitC-1 N16R8 + audio-panel input stage [isolation transformer + I2S codec ADC] +
+MAX98357A amp + **two** microSD breakouts + the annunciator switch). The earlier INMP441
+MEMS mic remains available only as a bench-test input.
 
 ## D.2 Master pin map
 
 | Function | Macro | GPIO | Dir | Notes |
 |---|---|---|---|---|
-| Push-to-talk | `PTT_GPIO` | 0 | in (PU) | BOOT button; active-low |
+| PTT **override** | `PTT_GPIO` | 0 | in (PU) | BOOT button; active-low; **force-listen** override of VOX |
 | SELECT switch | `SELECT_GPIO` | 10 | in (PU) | IN = GPIO→GND (active-low) |
 | Legend OFF (white) | `LEGEND_OFF_GPIO` | 21 | out | top legend half (via driver) |
 | Legend FAULT (amber) | `LEGEND_FAULT_GPIO` | 14 | out | bottom legend half (via driver) |
 | Status LED | `STATUS_LED_GPIO` | 48 | out | on-board RGB on most S3 devkits |
-| Mic bit clock | `MIC_BCLK_GPIO` | 4 | out | I2S0 BCLK → mic SCK |
-| Mic word select | `MIC_LRCLK_GPIO` | 5 | out | I2S0 WS → mic WS |
-| Mic data in | `MIC_DIN_GPIO` | 6 | in | mic SD → ESP DIN |
-| SD clock | `SD_CLK_GPIO` | 7 | out | SDMMC CLK |
+| Audio-in bit clock | `AIN_BCLK_GPIO` | 4 | out | I2S0 BCLK → codec/mic SCK |
+| Audio-in word select | `AIN_LRCLK_GPIO` | 5 | out | I2S0 WS → codec/mic WS |
+| Audio-in data | `AIN_DIN_GPIO` | 6 | in | codec ADC / mic SD → ESP DIN |
+| Audio-in master clock | `AIN_MCLK_GPIO` | 3 | out | **MCLK to the codec** (ES8388/ES7210 need it; INMP441/PCM1808 do not) |
+| Codec I2C SDA | `CODEC_SDA_GPIO` | 1 | i/o | ES-series codec control bus (digital path) |
+| Codec I2C SCL | `CODEC_SCL_GPIO` | 2 | out | ES-series codec control bus (digital path) |
+| SD clock | `SD_CLK_GPIO` | 7 | out | SDMMC CLK (**shared** by both card slots) |
 | SD command | `SD_CMD_GPIO` | 9 | i/o | SDMMC CMD (needs pull-up) |
 | SD data 0 | `SD_D0_GPIO` | 8 | i/o | SDMMC DAT0 (needs pull-up) |
+| Config-card detect | `SD_CFG_CD_GPIO` | 47 | in (PU) | slot-1 card-detect (Config Card) |
+| Data-card detect | `SD_DAT_CD_GPIO` | 38 | in (PU) | slot-2 card-detect (Data Card) |
 | Speaker bit clock | `SPK_BCLK_GPIO` | 15 | out | I2S1 BCLK → amp BCLK |
 | Speaker word select | `SPK_LRCLK_GPIO` | 16 | out | I2S1 WS → amp LRC |
 | Speaker data out | `SPK_DOUT_GPIO` | 17 | out | I2S1 DOUT → amp DIN |
@@ -401,25 +572,64 @@ codec, NS4150 amp, microSD slot; best mic performance) or **DIY** (ESP32-S3 DevK
 `LEGEND_FAULT_ACTIVE_HIGH=1`, `STATUS_LED_ACTIVE_HIGH=1`, `LAMP_TEST_MS=2000`. Set any
 unused output to `-1` to disable it cleanly.
 
+**Two-slot SD note:** the demo shares one SDMMC 1-bit bus (CLK/CMD/DAT0) across both card
+slots, distinguished by per-slot **card-detect** lines and by mounting each at its own path
+(`/sdcard-config`, `/sdcard-data`). A production unit may instead give each slot its own SPI
+or SDMMC bus to remove any contention; the firmware reads Config first, then Data (B.4).
+
 **Reserved / avoid pins (N16R8):** GPIO33–37 (octal PSRAM/flash bus — do not use),
 GPIO19/20 (USB D-/D+), GPIO0/45/46 (strapping — must boot in the right state),
-GPIO26–32 (SPI flash on some modules). GPIO0 here is only the BOOT/PTT button, so it is safe.
+GPIO26–32 (SPI flash on some modules). GPIO0 here is only the BOOT/PTT button, so it is
+safe. GPIO1/2/3 are used here for the codec I2C + MCLK; on the Korvo-2 use that board's BSP
+assignments instead.
 
 ## D.3 Per-device wiring
 
-**D.3.1 INMP441 MEMS mic → ESP32-S3 (I2S_NUM_0).** Supply 1.8–3.3 V (never 5 V), ~2.2–2.5 mA.
-VDD→3V3, GND→GND, SCK→GPIO4, WS→GPIO5, SD→GPIO6, L/R→GND (left channel). Decouple 0.1 µF;
-100 kΩ pulldown on SD; never clock with VDD off.
+**D.3.1 Audio-panel input stage (the crew-audio source, I2S_NUM_0).** Crew speech comes from
+the **aircraft audio panel**, not an onboard mic. The source is chosen by the Config Card
+(`audio_source`); both paths terminate as an **I2S input** to the ESP32-S3 and feed the
+ESP-SR AFE.
 
-**D.3.2 MAX98357A Class-D amp → ESP32-S3 (I2S_NUM_1).** Supply 2.5–5.5 V; ~2.4 mA quiescent;
+- **Analog path (`analog`).** Tap a headphone/intercom/line output from the panel
+  (aviation audio is typically ~150–600 Ω, ~1–5 V RMS). Feed it through a **600 Ω audio
+  ground-loop isolation transformer** (e.g. Allen Avionics AGL series) for galvanic
+  isolation, then through a **~220–470 Ω series resistor + simple RC anti-alias** into the
+  **line-in of an I2S codec ADC** (ES8388/ES7210 with MCLK on GPIO3, I2C control on
+  GPIO1/2; or PCM1808/CS5343 which self-clock). The tap is **high-impedance and parallel**
+  so the panel sees a negligible load; the device cannot back-feed the panel. Scale the
+  divider so panel line level maps to the codec's full-scale input without clipping.
+- **Digital path (`digital`).** Where the codec sits closer to the source, take a buffered,
+  **receive-only** I2S/line feed into the same codec ADC. There is **no I2S output toward
+  the panel** — BCLK/WS/MCLK are generated by the ESP32 for the ADC only, and no data line
+  is driven back toward any aircraft bus.
+- **Codec wiring:** SCK→GPIO4, WS→GPIO5, ADC_DATA→GPIO6, MCLK→GPIO3, I2C SDA/SCL→GPIO1/2;
+  supply per the codec (1.8–3.3 V analog/digital rails); decouple each rail 0.1 µF.
+- **Bench-test option only:** an **INMP441** MEMS mic may be wired in place of the codec for
+  desk testing (VDD→3V3, SCK→GPIO4, WS→GPIO5, SD→GPIO6, L/R→GND, 100 kΩ pulldown on SD,
+  never clock with VDD off). **This is not the installed audio source** and must not be used
+  in an aircraft (it does not hear the panel and breaks the receive-from-panel model).
+
+**D.3.2 VOX & PTT override.** Recognition is gated by the AFE **VAD** (VOX): the device
+listens whenever speech is detected on the panel feed, tuned by the Config Card
+(`vox.vad_sensitivity`, `vox.hangover_ms`). The **PTT** button (GPIO0, active-low) is a
+**force-listen override** — holding it opens recognition regardless of VAD, and with
+`vox.mode = ptt_only` it becomes the sole trigger (VOX disabled). PTT is debounced in
+software. There is **no PTT/keying line toward the aircraft** — this button only tells the
+device's own recognizer to listen.
+
+**D.3.3 MAX98357A Class-D amp → ESP32-S3 (I2S_NUM_1).** Supply 2.5–5.5 V; ~2.4 mA quiescent;
 peak ~650 mA at 5 V/4 Ω; no MCLK. VIN→5 V (full output), GND→GND, BCLK→GPIO15, LRC→GPIO16,
-DIN→GPIO17, GAIN NC = 9 dB, SD/mode float = mono. **OUT+/OUT− are bridge-tied — never to GND.**
+DIN→GPIO17, GAIN NC = 9 dB, SD/mode float = mono. **OUT+/OUT− are bridge-tied — never to
+GND.** The device drives its **own speaker**; its output is **never** routed back into the
+audio panel.
 
-**D.3.3 microSD (the Aircraft Card) → SDMMC 1-bit.** 3.3 V card. CLK→GPIO7, CMD→GPIO9
-(10 kΩ→3V3), DAT0→GPIO8 (10 kΩ→3V3), VDD→3V3, VSS→GND. FAT32; layout per Part B.
+**D.3.4 Two microSD card slots → SDMMC 1-bit.** 3.3 V cards. Shared bus CLK→GPIO7, CMD→GPIO9
+(10 kΩ→3V3), DAT0→GPIO8 (10 kΩ→3V3), VDD→3V3, VSS→GND. **Slot 1 = Config Card** (detect on
+GPIO47, mount `/sdcard-config`), **slot 2 = Data Card** (detect on GPIO38, mount
+`/sdcard-data`). FAT32; layouts per Part B. (Production option: separate bus per slot.)
 
-**D.3.4 Discrete inputs.** SELECT (GPIO10): LOW = selected IN; pull-up HIGH = OUT. PTT
-(GPIO0): LOW = pressed. Each is a simple SPST to GND; debounce in software.
+**D.3.5 Discrete inputs.** SELECT (GPIO10): LOW = selected IN; pull-up HIGH = OUT. PTT
+(GPIO0): LOW = pressed (override). Each is a simple SPST to GND; debounce in software.
 
 ## D.4 Annunciator switch (split-legend, dark-cockpit)
 
@@ -462,12 +672,15 @@ resistors driven straight from GPIO21/GPIO14 within the ~20 mA limit.
 
 | Rail | Loads | Typical | Peak |
 |---|---|---|---|
-| **3.3 V** | ESP32-S3 (Wi-Fi off) + mic + microSD | ~80–150 mA | ~250 mA (SD init / SR burst) |
+| **3.3 V** | ESP32-S3 (Wi-Fi off) + audio codec + **two** microSD slots | ~90–170 mA | ~280 mA (SD init / SR burst) |
 | **5 V** | MAX98357A output | a few mA idle | **~650 mA** (5 V/4 Ω, loud) |
 | **Lamp rail** | up to 2 legend halves | 0 (dark) | per lamp spec (e.g. 28 V incand.) |
 
-Power from **USB 5 V ≥ 1 A**. Keep a 28 V legend supply separate from logic 5 V (grounds
-common only). Bulk decoupling ≥ 100 µF near the amp VIN plus 0.1 µF per device.
+The audio-input codec (a few mA–~20 mA) and the second microSD slot add a little to the
+3.3 V rail; the isolation transformer is passive. Power from **USB 5 V ≥ 1 A**. Keep a 28 V
+legend supply separate from logic 5 V (grounds common only). Bulk decoupling ≥ 100 µF near
+the amp VIN plus 0.1 µF per device. The audio-panel tap draws **no power from the aircraft**
+and is isolated from the device's own grounds through the transformer (analog path).
 
 ## D.7 Processor selection
 
@@ -496,30 +709,36 @@ longer supported by the current speech algorithms and should be avoided.
 | Topic | Value |
 |---|---|
 | Framework | **ESP-IDF ≥ 5.2** |
-| Components | `esp-sr`, `esp_spiffs`, `driver`, `json` (cJSON), `fatfs`, `sdmmc`, `esp_driver_sdmmc` |
+| Components | `esp-sr`, `esp_spiffs`, `driver`, `json` (cJSON), `fatfs`, `sdmmc`, `esp_driver_sdmmc`, `esp_codec_dev` (codec init for the digital/analog path) |
 | Speech models | WakeNet `WN9_HIESP`; MultiNet English `mn6_en`/`mn7_en` (S3 only) |
 | Partitions | factory app 3 MB + model 5 MB + storage 2 MB → needs **16 MB** flash (N16R8) |
+| Audio input | ESP-SR AFE fed from I2S0 (codec ADC); **VAD→VOX** gating, PTT override; codec init from Config Card `audio.codec` |
+| Two-card load | Config Card first (`/sdcard-config/config.json`) → init audio source + VOX → then matching Data Card folder (`/sdcard-data/<aircraft>/`) |
 | Grammar rules | lowercase + single spaces; spell numbers ("v one"); ~200-cmd cap |
-| Fault behavior | any card fault → `ST_FAULT`, amber legend, **no checklist shown** |
+| Fault behavior | any card/config fault → `ST_FAULT`, amber legend, **no checklist shown** (B.4) |
 
 ## D.9 Bill of materials (DIY build)
 
 | Qty | Part | Spec / example |
 |---|---|---|
 | 1 | ESP32-S3 DevKit | DevKitC-1 **N16R8** (PSRAM) |
-| 1 | I2S MEMS mic | **INMP441** / ICS-43434 breakout |
+| 1 | **Audio-panel input codec** | I2S codec ADC with line-in: **ES8388 / ES7210** (need MCLK+I2C) or **PCM1808 / CS5343** (self-clocking) |
+| 1 | **Audio isolation transformer** | 600 Ω:600 Ω aviation audio ground-loop isolator (**Allen Avionics AGL** series) |
+| 1 | Input network | ~220–470 Ω series resistor + RC anti-alias for the analog tap |
 | 1 | I2S amp | **MAX98357A** breakout |
 | 1 | Speaker | 4–8 Ω, ≥ 2 W |
-| 1 | microSD card + breakout | FAT32 (the Aircraft Card) |
+| **2** | microSD card + breakout | FAT32 — **Config Card** (slot 1) + **Data Card** (slot 2) |
 | 1 | Annunciator switch | Applied Avionics VIVISUN/Korry split-legend (or 2 LEDs for bench) |
 | 2 | Lamp driver | logic-level N-MOSFET (2N7002/AO3400) or NPN (2N2222) |
 | 4 | Resistors | 1 kΩ ×2 (gate), 10 kΩ ×2 (pulldown) |
-| 2–3 | Pull-ups | 10 kΩ on SD CMD/DAT0 (if breakout lacks them) |
-| — | Caps | 0.1 µF per device, 100 µF bulk near amp |
-| 1 | PTT button | momentary SPST (or use BOOT) |
+| 2–4 | Pull-ups | 10 kΩ on SD CMD/DAT0; codec I2C pull-ups if needed |
+| — | Caps | 0.1 µF per device/rail, 100 µF bulk near amp |
+| 1 | PTT button | momentary SPST (or use BOOT) — **VOX override** |
+| (opt.) | INMP441 MEMS mic | **bench-test input only**, not the installed source |
 
-Integrated alternative: **ESP32-S3-Korvo-2** (~$45–55) replaces mic/codec/amp/SD; use its
-BSP pin map and ES8311 codec init.
+Integrated alternative: **ESP32-S3-Korvo-2** (~$45–55) provides codec/amp/SD on-board; use
+its BSP pin map and codec (ES8311/ES7210) init, and repurpose its line-in for the
+audio-panel feed. A production unit adds the second card slot.
 
 ---
 
@@ -533,11 +752,11 @@ for a specific airframe. The only airframe-specific item is the **mounting varia
 
 | Piece | Contents | Where | Why |
 |---|---|---|---|
-| **A. Panel bezel** | Split-legend annunciator switch, speaker + grille, optional PTT | Front panel / pedestal, on the **DZUS rail** | Crew must see/reach it; dark-cockpit annunciator in the normal scan |
-| **B. Remote processor box** | ESP32-S3, mic, amp, **microSD card slot**, lamp-driver, power conditioning | Avionics bay / behind-panel, blind | Keeps heat, the card slot, and wiring out of the panel |
+| **A. Panel bezel** | Split-legend annunciator switch, speaker + grille, **PTT override** button | Front panel / pedestal, on the **DZUS rail** | Crew must see/reach it; dark-cockpit annunciator in the normal scan |
+| **B. Remote processor box** | ESP32-S3, audio-input stage (isolation transformer + codec), amp, **two microSD card slots**, lamp-driver, power conditioning | Avionics bay / behind-panel, blind | Keeps heat, the card slots, and wiring out of the panel; close to the audio-panel tap point |
 
 A single all-in-one box is acceptable for a pure bench demo, but the two-piece split mirrors
-real remote-mount avionics and keeps the mic away from fan/avionics noise.
+real remote-mount avionics and keeps the audio-input stage near the panel tap.
 
 ## E.2 Piece A — panel bezel
 
@@ -560,22 +779,29 @@ real remote-mount avionics and keeps the mic away from fan/avionics noise.
 
 ## E.3 Piece B — remote processor box
 
-- **Envelope:** sized around the ESP32-S3 DevKitC-1 (≈ 70×26 mm) plus amp, mic, microSD
-  breakout, and the 2-channel lamp-driver; practical outer **≈ 110 × 80 × 45 mm**. Confirm
-  against the actual stacked board set.
+- **Envelope:** sized around the ESP32-S3 DevKitC-1 (≈ 70×26 mm) plus amp, the audio-input
+  stage (codec + isolation transformer), **two** microSD breakouts, and the 2-channel
+  lamp-driver; practical outer **≈ 120 × 85 × 45 mm** (slightly larger than before to fit the
+  transformer + second slot). Confirm against the actual stacked board set.
 - **Mounting:** internal standoffs / M2.5 brass inserts — boards screwed down, not floating
-  (vibration). Keep the mic away from the amp/any fan; if the mic lives here, add a meshed
-  acoustic port; mic may instead live in the bezel (keep the I2S run < 150 mm).
-- **Access & connectors:** externally swappable **microSD (Aircraft Card)** carrier labeled
-  `CONFIG CARD — FAT32` (swap without opening the box); covered/recessed **USB-C** service
-  port (bench use only); one keyed, positive-latching main connector (small MIL-circular or
-  9-pin D-sub) carrying SELECT, both legend drives, PTT, speaker +/−, power/ground (pinout
-  from `board_pins.h`). Accept USB 5 V ≥ 1 A; optional internal **28 V→5 V DC-DC** (≥ 2 A)
-  with TVS + fuse if a 28 V bus mock-up is wanted (mark as demo regulator, not DO-160
-  qualified).
+  (vibration). Keep the audio-input stage and its shielded cabling away from the amp and the
+  switching DC-DC; the isolation transformer mounts solidly (it is a magnetic part).
+- **Card slots:** **two externally-swappable microSD carriers**, clearly and distinctly
+  labeled **`CONFIG CARD — FAT32`** (slot 1) and **`DATA CARD — FAT32`** (slot 2), keyed or
+  spaced so they cannot be confused/swapped; both swappable without opening the box. The
+  Config Card carrier should accept a **write-protect-locked** card.
+- **Access & connectors:** covered/recessed **USB-C** service port (bench use only); one
+  keyed, positive-latching main connector (small MIL-circular or D-sub) carrying SELECT,
+  both legend drives, PTT, speaker +/−, power/ground (pinout from `board_pins.h`); **plus a
+  separate, shielded, clearly-labeled `AUDIO IN (ISOLATED, RX ONLY)` connector** for the
+  audio-panel tap — kept on its own keyed connector so it can never be mis-mated to power or
+  the speaker, with the isolation transformer **inside** the box on the panel side of the
+  codec. Accept USB 5 V ≥ 1 A; optional internal **28 V→5 V DC-DC** (≥ 2 A) with TVS + fuse
+  if a 28 V bus mock-up is wanted (mark as demo regulator, not DO-160 qualified).
 - **Material/EMI:** aluminum preferred (doubles as EMI shield + heatsink); if plastic, add a
   grounded conductive shield liner/coating; single-point chassis ground stud bonded to the
-  connector shell and ESP32 ground.
+  connector shell and ESP32 ground. Route the audio-in shield per the panel's grounding
+  practice (often **grounded only at the intercom** — see C.3a).
 
 ## E.4 Audio, thermal, environmental, labeling
 
@@ -588,9 +814,10 @@ real remote-mount avionics and keeps the mic away from fan/avionics noise.
 - **Environmental:** design toward the DO-160G categories in **C.4** (Cat A2 temp, Cat S
   vibration, etc.) — design guidance for the prototype, formal test for a productized unit.
 - **Labeling:** placard `DEMO / TRAINING ONLY — NOT FOR FLIGHT`; box exterior carries unit
-  name, serial/asset field, `FAT32` card format, and the USB "bench use only" note;
-  annunciator legends `VOICE CHKLST OFF` (white) / `VOICE CHKLST FAULT` (amber); amber =
-  caution, white = status per AC 25-11B.
+  name, serial/asset field, the **two card-slot labels** (`CONFIG CARD` / `DATA CARD`,
+  FAT32), the `AUDIO IN — ISOLATED, RX ONLY` connector marking, and the USB "bench use
+  only" note; annunciator legends `VOICE CHKLST OFF` (white) / `VOICE CHKLST FAULT` (amber);
+  amber = caution, white = status per AC 25-11B.
 
 ## E.5 Deliverables & open items for the engineer
 
@@ -602,12 +829,15 @@ connector cutouts; GD&T on the switch cutout and DZUS holes); connector pinout m
 
 **Open items (confirm before CAD):** the **exact Applied Avionics switch part number** — the
 single most critical dimension; nothing finalizes until it is fixed. Also: DZUS slot vs.
-3-1/8 in round hole in the target panel; where the mic lives; whether a 28 V input is
-wanted; and the speaker model (sets grille open area + rear-volume cavity).
+3-1/8 in round hole in the target panel; the **audio-panel tap point, level, and grounding**
+for the target installation (sets the isolation-transformer + divider design); the **codec
+part** for the digital path (sets the I2C/MCLK init); whether a 28 V input is wanted; and the
+speaker model (sets grille open area + rear-volume cavity).
 
 **Reference dimensions:** DZUS pitch 9.525 mm · DZUS hole 6.48 mm · backplate 1.6 mm · first
 fastener offset 14.29 mm · pedestal panel width ≈ 146 mm · round instrument hole 79.4 mm ·
-remote box ≈ 110 × 80 × 45 mm · speaker 4–8 Ω ≥ 2 W.
+remote box ≈ 120 × 85 × 45 mm · two microSD slots · isolated RX-only audio-in connector ·
+speaker 4–8 Ω ≥ 2 W.
 
 ---
 
@@ -625,7 +855,12 @@ remote box ≈ 110 × 80 × 45 mm · speaker 4–8 Ω ≥ 2 W.
 - FAA **AC 25-11B**, electronic flight displays — annunciation color / dark-cockpit conventions — https://www.faa.gov/documentlibrary/media/advisory_circular/ac_25-11b.pdf
 
 **Hardware & components**
-- INMP441 microphone datasheet — https://www.farnell.com/datasheets/1824785.pdf
+- Allen Avionics **AGL audio ground-loop isolation transformers** (analog audio-panel tap) — https://www.allenavionics.com/categories/agl-audio-ground-loop-isolation-transformers
+- Everest-Semi **ES8388** audio codec (line-in I2S ADC, MCLK + I2C) — https://dl.radxa.com/rock2/docs/hw/datasheet/ES8388%20user%20Guide.pdf
+- **ES7210** multichannel audio ADC (Espressif-supported codec) — https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/board-esp32-s3-korvo-2.html
+- TI **PCM1808** stereo audio ADC (self-clocking I2S input) — https://www.ti.com/lit/ds/symlink/pcm1808.pdf
+- Espressif **ESP-SR** AFE / VAD (voice-activity detection for VOX) — https://github.com/espressif/esp-sr
+- INMP441 microphone datasheet (bench-test option only) — https://www.farnell.com/datasheets/1824785.pdf
 - MAX98357A amplifier datasheet (Analog Devices) — https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf
 - MAX98357A breakout guide (Adafruit) — https://cdn-learn.adafruit.com/downloads/pdf/adafruit-max98357-i2s-class-d-mono-amp.pdf
 - ESP32-S3 GPIO drive current — https://esp32.com/viewtopic.php?t=20097

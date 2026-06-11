@@ -192,8 +192,17 @@ story.append(Paragraph(
     "pilot states an emergency by name; the device reads each checklist item aloud and waits for a "
     "spoken completion word before advancing. It runs entirely on-device (no cloud, no Wi-Fi). "
     "<b>The product itself is aircraft-agnostic</b> \u2014 all aircraft-specific behavior comes from the "
-    "<b>Aircraft Card</b> that is installed (Part B). The Cessna Citation CJ2 is included only as the "
-    "reference example card.", bodyj))
+    "<b>installed cards</b> (Part B). The Cessna Citation CJ2 is included only as the "
+    "reference example.", bodyj))
+story.append(Paragraph(
+    "<b>Crew audio is taken from the aircraft audio panel</b> (analog or digital, selectable per "
+    "installation), and recognition is <b>voice-activated (VOX)</b> by default \u2014 the pilot simply "
+    "speaks, with a push-to-talk (PTT) button retained as a manual override. <b>Configuration and "
+    "checklist data live on two separate cards</b> \u2014 a write-protected <b>Config Card</b> that defines "
+    "the installation (aircraft selection, audio source, VOX behavior, hardware options) and a "
+    "<b>Data Card</b> that carries the checklist library and audio. This two-card, audio-panel-fed "
+    "design is a deliberate change from the earlier onboard-microphone / single-card demo and carries "
+    "certification consequences addressed honestly in Part C.", bodyj))
 story.append(Paragraph(
     "<b>This master reference supersedes and combines</b> the previously separate documents: the "
     "technical data packet, the processor-selection note, and the enclosure specification. Those "
@@ -202,10 +211,10 @@ story.append(Spacer(1, 6))
 dmap = [
     ["Part", "Contents"],
     ["<b>A &nbsp;Product</b>", "What the system is, the generic architecture, and the safety model"],
-    ["<b>B &nbsp;Aircraft Card</b>", "The card-defines-everything model + the formal card specification &amp; validation"],
-    ["<b>C &nbsp;Certification basis</b>", "NORSEE / DO-160G / installation path, and the deliberate DO-178C-avoidance argument"],
-    ["<b>D &nbsp;Hardware reference</b>", "Pin map, per-device wiring, annunciator, lamp driver, power, BOM, processor selection"],
-    ["<b>E &nbsp;Enclosure</b>", "Two-piece mechanical specification for the fabricating engineer"],
+    ["<b>B &nbsp;The cards</b>", "The two-card (Config + Data) model + the formal card specifications &amp; validation"],
+    ["<b>C &nbsp;Certification basis</b>", "NORSEE / DO-160G / installation path, the deliberate DO-178C-avoidance argument, and the audio-panel-interface impact"],
+    ["<b>D &nbsp;Hardware reference</b>", "Pin map, audio-input stage, VOX/PTT, per-device wiring, annunciator, lamp driver, power, BOM, processor selection"],
+    ["<b>E &nbsp;Enclosure</b>", "Two-piece mechanical specification (dual card slots, isolated audio interface) for the fabricating engineer"],
     ["<b>F &nbsp;References</b>", "All cited regulatory and component sources"],
 ]
 story.append(make_table(dmap, [1.6*inch, 5.1*inch]))
@@ -221,8 +230,8 @@ story.append(Paragraph("A.1 &nbsp; What it is (and is not)", h2))
 isnot = [
     ["It <b>is</b>", "It <b>is not</b>"],
     ["An <b>advisory</b> read-aloud reader of checklist items", "A required or primary aircraft system"],
-    ["<b>Independent</b> \u2014 no electrical/data tie to any aircraft system", "An interface to avionics, engines, or controls"],
-    ["Driven entirely by an installed <b>Aircraft Card</b>", "Tied to one airframe in firmware"],
+    ["<b>Receive-only</b> on a single audio tap; no command/data to any aircraft system", "A transmitter, a panel control, or an interface to avionics/engines/controls"],
+    ["Driven entirely by the installed <b>Config Card + Data Card</b>", "Tied to one airframe in firmware"],
     ["<b>Offline</b>, deterministic, single-chip", "A cloud / connected / large-vocabulary STT device"],
     ["A <b>complement</b> to the certified/required checklist", "A substitute for the AFM/QRH or required checklist"],
 ]
@@ -230,26 +239,37 @@ story.append(make_table(isnot, [3.35*inch, 3.35*inch]))
 story.append(Spacer(1, 8))
 story.append(Paragraph(
     "This framing is not cosmetic \u2014 it is the foundation of the certification argument in Part C. A "
-    "device that is non-required, advisory-only, independent of primary systems, and fails to a "
-    "clearly-annunciated safe state is the textbook profile for the <b>NORSEE</b> (Non-Required Safety "
-    "Enhancing Equipment) approval path, and it is what lets the program lean on DO-160G environmental "
-    "qualification while avoiding DO-178C software assurance.", bodyj))
+    "device that is non-required, advisory-only, fails to a clearly-annunciated safe state, and connects "
+    "to the aircraft only through a <b>galvanically-isolated, receive-only</b> audio tap is the profile "
+    "that fits the <b>NORSEE</b> (Non-Required Safety Enhancing Equipment) approval path and that lets the "
+    "program lean on DO-160G environmental qualification while avoiding DO-178C software assurance. Note "
+    "that the audio-panel tap is a <b>wired interface to an aircraft system</b> \u2014 it deliberately trades "
+    "the old \u201celectrically independent\u201d claim for a weaker but defensible \u201creceive-only, isolated\u201d "
+    "posture. Part C addresses this honestly; it is the most significant certification change in this "
+    "revision.", bodyj))
 
 story.append(Paragraph("A.2 &nbsp; Generic system architecture", h2))
 arch = [
-    ["Block", "Function", "Aircraft-specific?"],
-    ["<b>MCU + speech stack</b>", "Wake word &rarr; command recognition &rarr; playback sequencing", "No \u2014 fixed firmware"],
-    ["<b>Microphone (I2S)</b>", "Captures crew speech for recognition", "No"],
-    ["<b>Speaker + amplifier (I2S)</b>", "Reads checklist items / annunciations aloud", "No"],
-    ["<b>microSD (the Aircraft Card)</b>", "Carries aircraft ID, checklist library, audio, config, validation", "<b>Yes \u2014 the only aircraft-specific element</b>"],
-    ["<b>Annunciator switch</b>", "Dark-cockpit status / fault indication, IN/OUT select", "No"],
+    ["Block", "Function", "Install-/aircraft-specific?"],
+    ["<b>MCU + speech stack</b>", "VOX/wake word &rarr; command recognition &rarr; playback sequencing", "No \u2014 fixed firmware"],
+    ["<b>Audio-panel input stage</b>", "Takes crew speech <b>from the aircraft audio panel</b> \u2014 analog (isolated line tap) or digital (I2S codec), selectable per install", "<b>Config-driven</b> \u2014 source set by the Config Card; path wired at install"],
+    ["<b>Speaker + amplifier (I2S)</b>", "Reads checklist items / annunciations aloud (own speaker; not fed back to the panel)", "No"],
+    ["<b>Config Card (microSD, slot 1)</b>", "Defines the installation: active aircraft, audio source (analog/digital), VOX parameters, hardware options", "<b>Yes \u2014 per installation</b>"],
+    ["<b>Data Card (microSD, slot 2)</b>", "Carries the checklist library, trigger/advance vocabulary, and read-aloud audio", "<b>Yes \u2014 per aircraft</b>"],
+    ["<b>Annunciator switch</b>", "Dark-cockpit status / fault indication, IN/OUT select, PTT override", "No"],
 ]
-story.append(make_table(arch, [1.7*inch, 3.4*inch, 1.6*inch]))
+story.append(make_table(arch, [1.55*inch, 3.45*inch, 1.7*inch]))
 story.append(Spacer(1, 8))
 story.append(Paragraph(
     "The MCU runs Espressif <b>ESP-SR</b> (AFE noise-suppression/VAD &rarr; WakeNet wake word &rarr; "
-    "MultiNet fixed-grammar command recognition). The grammar (trigger phrases, advance words) is small "
-    "and bounded, which is what keeps an MCU-class part in scope (see D.7).", body))
+    "MultiNet fixed-grammar command recognition). The <b>AFE's voice-activity detector (VAD) is what "
+    "enables hands-free VOX</b>: the pilot speaks and the device gates recognition on detected speech, with "
+    "the PTT button retained as a manual override (force-listen). The grammar (trigger phrases, advance "
+    "words) is small and bounded, which is what keeps an MCU-class part in scope (see D.7).", body))
+story.append(Paragraph(
+    "The crew-audio source is <b>no longer an onboard microphone in the operational design</b> \u2014 it is a "
+    "tap off the aircraft audio panel. An onboard MEMS microphone is retained only as a documented "
+    "<b>bench-test</b> option (D.3), never as the installed audio source.", body))
 
 story.append(Paragraph("A.3 &nbsp; The safety model (carried into the cert argument)", h2))
 story.append(Paragraph(
@@ -263,45 +283,101 @@ story.append(numbered([
     "lights the amber FAULT legend. Selected OUT shows the white OFF status and <b>inhibits</b> the fault "
     "legend (a deliberately deselected system needs no crew action). A power-up lamp test proves the legend "
     "is alive.",
-    "<b>Independence.</b> The device draws power and nothing else from the aircraft; it neither reads from "
-    "nor writes to any aircraft system. Loss of the device cannot affect any primary function.",
+    "<b>Receive-only, isolated interface.</b> The device's only tie to an aircraft system is the "
+    "<b>audio-panel input</b>, and that tie is <b>one-way (listen) and galvanically isolated</b> (see C.3a, "
+    "D.3.1): a high-impedance, isolation-transformer-coupled tap for the analog path, or a buffered "
+    "receive-only feed for the digital path. The unit <b>cannot transmit, key, mute, or back-feed</b> the "
+    "panel, and it still draws power on its own protected rail. A short, open, or failure of the device "
+    "cannot affect audio-panel function. This replaces the former \u201cno electrical tie at all\u201d claim "
+    "with a narrower, testable one \u2014 and it is the crux of the Part C argument.",
 ]))
 
 # ================= PART B =================
 story.append(PageBreak())
-story += part_divider("B", "The Aircraft Card",
-    "Card defines everything. The product is generic; the installed microSD card makes it a specific "
-    "aircraft's checklist reader. This part is the formal card specification \u2014 layout, manifest schema, "
-    "voice-grammar rules, and the validation logic that implements revert-to-unopened.")
+story += part_divider("B", "The Two Cards",
+    "Card defines everything \u2014 split across two. The product is generic; two installed microSD cards "
+    "make it a specific aircraft's checklist reader, installed a specific way. A write-protected Config "
+    "Card describes the installation; a Data Card carries the checklist content. This part is the formal "
+    "specification \u2014 layouts, schemas, voice-grammar rules, and the validation logic that implements "
+    "revert-to-unopened.")
 
 story.append(Paragraph("B.1 &nbsp; Principle", h2))
 story.append(callout(
-    "<b>The product is generic. The installed card makes it a specific aircraft's checklist reader.</b> "
-    "To support a new airframe \u2014 King Air, PC-12, TBM, another Citation \u2014 you author a new card. "
-    "<b>No firmware change, no recompile, no hardware change.</b>", "info"))
+    "<b>The product is generic. The two installed cards make it a specific aircraft's checklist reader, "
+    "installed a specific way.</b> Responsibility is split: the <b>Config Card</b> describes <i>this "
+    "installation</i> (which aircraft, which audio source, how VOX behaves, what hardware is fitted); the "
+    "<b>Data Card</b> carries <i>the checklist content</i> (library, vocabulary, audio). To support a new "
+    "airframe you author a new Data Card; to re-use it in a different aircraft or wiring you change only "
+    "the Config Card. <b>No firmware change, no recompile.</b>", "info"))
 story.append(Spacer(1, 8))
 story.append(Paragraph(
-    "Everything that varies by aircraft lives on the card: the aircraft identity, the checklist library "
-    "(titles, trigger phrases, ordered items, per-item completion/advance words), the read-aloud audio, "
-    "and the universal advance vocabulary. The firmware contains only the generic engine that loads, "
-    "validates, and plays whatever a valid card provides.", bodyj))
+    "Why two cards? Configuration is <b>installation-controlled</b> (set by the installer/shop and locked) "
+    "while checklist data is <b>content-controlled</b> (authored from the AFM/QRH and revised as the source "
+    "revises). Separating them keeps a content revision from silently changing the installation's "
+    "audio/VOX setup, and lets a write-protected Config Card serve as the configuration-control record the "
+    "FAA expects under NORSEE (Part C). Both cards are microSD/FAT32 and sit in <b>two physical slots</b> "
+    "(slot 1 = CONFIG, slot 2 = DATA; see E.3).", bodyj))
 
-story.append(Paragraph("B.2 &nbsp; Card layout (microSD, FAT32)", h2))
+story.append(Paragraph("B.2 &nbsp; Config Card (slot 1) \u2014 layout &amp; schema", h2))
 story.append(mono_light(
-    "/sdcard/\n"
-    "  config.txt                 (optional) one line: AIRCRAFT=<FOLDER>\n"
+    "/sdcard-config/   (slot 1, microSD, FAT32)\n"
+    "  config.json     the single installation-configuration manifest"))
+story.append(Spacer(1, 8))
+story.append(Paragraph("<font name='Mono' size='8.5'>config.json</font> top-level object:", body))
+cfg = [
+    ["Field", "Type", "Req.", "Meaning"],
+    ["<font name='Mono' size='8'>schema_version</font>", "integer", "rec.", "Config-schema version the firmware validates against"],
+    ["<font name='Mono' size='8'>aircraft</font>", "string", "<b>yes</b>", "Active aircraft id; <b>must match</b> a folder on the Data Card"],
+    ["<font name='Mono' size='8'>audio_source</font>", "string", "<b>yes</b>", "<font name='Mono' size='8'>analog</font> or <font name='Mono' size='8'>digital</font> \u2014 selects the audio-panel input path (D.3.1)"],
+    ["<font name='Mono' size='8'>audio</font>", "object", "<b>yes</b>", "Audio-input parameters (below)"],
+    ["<font name='Mono' size='8'>vox</font>", "object", "<b>yes</b>", "VOX behavior (below)"],
+    ["<font name='Mono' size='8'>hardware</font>", "object", "opt.", "Fitted-hardware options (codec part, legend rail, PTT present, etc.)"],
+    ["<font name='Mono' size='8'>install</font>", "object", "rec.", "Provenance: shop, installer, date, work-order (configuration control)"],
+]
+story.append(make_table(cfg, [1.55*inch, 0.75*inch, 0.6*inch, 3.8*inch]))
+story.append(Spacer(1, 6))
+story.append(Paragraph("<font name='Mono' size='8.5'>audio</font> object:", body))
+aud = [
+    ["Field", "Type", "Req.", "Meaning"],
+    ["<font name='Mono' size='8'>input_gain_db</font>", "number", "rec.", "Input trim for the line-level tap (typ. 0\u20136 dB)"],
+    ["<font name='Mono' size='8'>codec</font>", "string", "when <font name='Mono' size='7.5'>digital</font>", "I2S codec fitted (e.g. <font name='Mono' size='8'>es8388</font>, <font name='Mono' size='8'>es7210</font>, <font name='Mono' size='8'>pcm1808</font>)"],
+    ["<font name='Mono' size='8'>sample_rate_hz</font>", "integer", "rec.", "16000 for ESP-SR"],
+]
+story.append(make_table(aud, [1.55*inch, 0.75*inch, 0.85*inch, 3.55*inch]))
+story.append(Spacer(1, 6))
+story.append(Paragraph("<font name='Mono' size='8.5'>vox</font> object:", body))
+voxt = [
+    ["Field", "Type", "Req.", "Meaning"],
+    ["<font name='Mono' size='8'>mode</font>", "string", "<b>yes</b>", "<font name='Mono' size='8'>vox</font> (default, hands-free) or <font name='Mono' size='8'>ptt_only</font> (override-only)"],
+    ["<font name='Mono' size='8'>vad_sensitivity</font>", "integer", "rec.", "AFE VAD aggressiveness 0\u20133 (higher = less false-trigger, may clip onset)"],
+    ["<font name='Mono' size='8'>hangover_ms</font>", "integer", "rec.", "How long to keep listening after speech stops (debounce, typ. 300\u2013600 ms)"],
+    ["<font name='Mono' size='8'>ptt_override</font>", "boolean", "rec.", "<font name='Mono' size='8'>true</font> keeps PTT as a force-listen override even in <font name='Mono' size='8'>vox</font> mode"],
+]
+story.append(make_table(voxt, [1.55*inch, 0.75*inch, 0.6*inch, 3.8*inch]))
+story.append(Spacer(1, 6))
+story.append(bullets([
+    "<b><font name='Mono' size='8.5'>ptt_only</font> mode</b> disables VOX and reverts to the legacy "
+    "push-to-talk behavior.",
+    "A Config Card whose <font name='Mono' size='8.5'>aircraft</font> has no matching Data Card folder is a "
+    "fault (<font name='Mono' size='8.5'>FAULT_AIRCRAFT_MISMATCH</font>), not a silent guess.",
+]))
+
+story.append(Paragraph("B.3 &nbsp; Data Card (slot 2) \u2014 layout", h2))
+story.append(mono_light(
+    "/sdcard-data/   (slot 2, microSD, FAT32)\n"
     "  <FOLDER>/                  one folder per aircraft (e.g. CJ2, B200, PC12)\n"
-    "    checklists.json          the card manifest + checklist library\n"
+    "    checklists.json          the data manifest + checklist library\n"
     "    audio/\n"
     "      <clip>.wav             one read-aloud clip per referenced item + fault clips"))
 story.append(Spacer(1, 8))
 story.append(bullets([
-    "<b>Auto-select:</b> if exactly one aircraft folder is present, it loads automatically.",
-    "<b>Explicit select:</b> if multiple folders exist, <font name='Mono' size='8.5'>config.txt</font> "
-    "names the active one. A missing/invalid target is a fault (revert-to-unopened), not a silent guess.",
+    "The firmware loads the folder named by the <b>Config Card's</b> "
+    "<font name='Mono' size='8.5'>aircraft</font> field. If no Config Card is present at all, that is "
+    "<font name='Mono' size='8.5'>FAULT_NO_CONFIG</font> \u2014 the device does <b>not</b> fall back to "
+    "guessing a folder.",
 ]))
 
-story.append(Paragraph("B.3 &nbsp; Card manifest schema (checklists.json)", h2))
+story.append(Paragraph("B.3a &nbsp; Data Card manifest schema (checklists.json)", h2))
 story.append(Paragraph("Top-level object:", body))
 top = [
     ["Field", "Type", "Req.", "Meaning"],
@@ -346,40 +422,51 @@ story.append(bullets([
 ]))
 
 story.append(PageBreak())
-story.append(Paragraph("B.4 &nbsp; Card validation &amp; the revert-to-unopened rule", h2))
+story.append(Paragraph("B.4 &nbsp; Two-card validation &amp; the revert-to-unopened rule", h2))
 story.append(Paragraph(
-    "On boot the firmware attempts a <b>complete, valid</b> load and returns exactly one status:", body))
+    "On boot the firmware attempts a <b>complete, valid</b> load of <b>both cards</b> and returns exactly "
+    "one status. Both cards must be present, valid, and <b>mutually consistent</b> (the Config Card's "
+    "<font name='Mono' size='8.5'>aircraft</font> must resolve to a Data Card folder):", body))
 val = [
-    ["Status", "Meaning", "Annunciation"],
-    ["<font name='Mono' size='8'>STORE_OK</font>", "SD mounted, JSON parsed + schema-valid, <b>every</b> audio clip present", "dark (healthy)"],
-    ["<font name='Mono' size='8'>FAULT_NO_CARD</font>", "SD not detected / mount failed", "amber FAULT"],
-    ["<font name='Mono' size='8'>FAULT_NO_AIRCRAFT</font>", "No aircraft folder, or <font name='Mono' size='8'>config.txt</font> target missing", "amber FAULT"],
-    ["<font name='Mono' size='8'>FAULT_NO_JSON</font>", "<font name='Mono' size='8'>checklists.json</font> missing / unreadable", "amber FAULT"],
-    ["<font name='Mono' size='8'>FAULT_PARSE</font>", "JSON malformed", "amber FAULT"],
-    ["<font name='Mono' size='8'>FAULT_VALIDATION</font>", "Schema or voice-rule violation, empty data", "amber FAULT"],
-    ["<font name='Mono' size='8'>FAULT_AUDIO_MISSING</font>", "A referenced clip is absent", "amber FAULT"],
-    ["<font name='Mono' size='8'>FAULT_NO_MEMORY</font>", "Allocation failed while loading", "amber FAULT"],
+    ["Status", "Card", "Meaning", "Annunc."],
+    ["<font name='Mono' size='7.5'>STORE_OK</font>", "both", "Both cards mounted, both manifests parsed + schema-valid, <b>every</b> audio clip present, aircraft consistent", "dark"],
+    ["<font name='Mono' size='7.5'>FAULT_NO_CONFIG</font>", "config", "Config Card not detected / <font name='Mono' size='7.5'>config.json</font> missing / unreadable", "amber"],
+    ["<font name='Mono' size='7.5'>FAULT_CONFIG_PARSE</font>", "config", "<font name='Mono' size='7.5'>config.json</font> malformed", "amber"],
+    ["<font name='Mono' size='7.5'>FAULT_CONFIG_VALIDATION</font>", "config", "Config schema / value violation (bad <font name='Mono' size='7.5'>audio_source</font>, bad <font name='Mono' size='7.5'>vox.mode</font>, missing required field)", "amber"],
+    ["<font name='Mono' size='7.5'>FAULT_NO_CARD</font>", "data", "Data Card not detected / mount failed", "amber"],
+    ["<font name='Mono' size='7.5'>FAULT_AIRCRAFT_MISMATCH</font>", "both", "Config <font name='Mono' size='7.5'>aircraft</font> has no matching Data Card folder", "amber"],
+    ["<font name='Mono' size='7.5'>FAULT_NO_JSON</font>", "data", "<font name='Mono' size='7.5'>checklists.json</font> missing / unreadable", "amber"],
+    ["<font name='Mono' size='7.5'>FAULT_PARSE</font>", "data", "Data JSON malformed", "amber"],
+    ["<font name='Mono' size='7.5'>FAULT_VALIDATION</font>", "data", "Data schema or voice-rule violation, empty data", "amber"],
+    ["<font name='Mono' size='7.5'>FAULT_AUDIO_MISSING</font>", "data", "A referenced clip is absent", "amber"],
+    ["<font name='Mono' size='7.5'>FAULT_NO_MEMORY</font>", "\u2014", "Allocation failed while loading", "amber"],
 ]
-story.append(make_table(val, [1.85*inch, 3.5*inch, 1.35*inch]))
+story.append(make_table(val, [1.75*inch, 0.55*inch, 3.65*inch, 0.75*inch]))
 story.append(Spacer(1, 8))
 story.append(callout(
     "<b>On any FAULT the in-memory checklist table is left EMPTY</b> \u2014 the device cannot present a partial "
     "or stale checklist even if asked. This is the literal implementation of \u201calways revert to unopened "
-    "if files are not available.\u201d", "warn"))
+    "if files are not available.\u201d The boot order is <b>Config Card first</b> (it names the aircraft and the "
+    "audio source the input stage must initialize), then the matching Data Card folder.", "warn"))
 
-story.append(Paragraph("B.5 &nbsp; Card integrity &amp; provenance (recommended for a productized card)", h2))
+story.append(Paragraph("B.5 &nbsp; Card integrity &amp; provenance (recommended for productized cards)", h2))
 story.append(Paragraph(
-    "For a card that drives a <i>safety-enhancing</i> device, integrity matters as much as schema validity. "
+    "For cards that drive a <i>safety-enhancing</i> device, integrity matters as much as schema validity. "
     "Recommended additions (forward-looking, beyond the current demo):", body))
 story.append(bullets([
-    "<b>Schema version gate</b> \u2014 firmware refuses a card whose <font name='Mono' size='8.5'>schema_version</font> "
+    "<b>Schema version gate</b> \u2014 firmware refuses either card whose <font name='Mono' size='8.5'>schema_version</font> "
     "it does not support, rather than mis-parsing it.",
     "<b>Manifest checksum / signature</b> \u2014 a per-card hash (and, for production, a signature) so a corrupted "
-    "or tampered card is rejected as <font name='Mono' size='8.5'>FAULT_VALIDATION</font>.",
-    "<b>Content provenance</b> \u2014 record, per card, the AFM/QRH source revision the checklist text was "
-    "transcribed from, the author, and the date. Advisory equipment is only as good as the source it "
-    "mirrors; provenance is part of the configuration-control story the FAA expects under NORSEE (Part C).",
-    "<b>Read-only media</b> \u2014 distribute production cards write-protected.",
+    "or tampered card is rejected (<font name='Mono' size='8.5'>FAULT_CONFIG_VALIDATION</font> / "
+    "<font name='Mono' size='8.5'>FAULT_VALIDATION</font>).",
+    "<b>Content provenance (Data Card)</b> \u2014 record the AFM/QRH source revision the checklist text was "
+    "transcribed from, the author, and the date.",
+    "<b>Installation provenance (Config Card)</b> \u2014 the <font name='Mono' size='8.5'>install</font> object "
+    "records shop, installer, date, and work-order. The Config Card is the per-tail "
+    "<b>configuration-control record</b> the FAA expects under NORSEE (Part C): it documents <i>how this "
+    "specific aircraft was set up</i>, including the audio source and VOX behavior.",
+    "<b>Read-only media</b> \u2014 distribute production cards write-protected; the Config Card in particular "
+    "should be <b>locked after installation</b> so configuration cannot drift in service.",
 ]))
 
 # ================= PART C =================
@@ -448,8 +535,13 @@ story.append(numbered([
     "and a procedural requirement that the crew cross-checks against the required checklist. Neither failure "
     "reduces the crew's ability to cope with a condition worse than minor \u2014 the NORSEE safety-evaluation "
     "test<super>1</super>.",
-    "<b>Independence.</b> No input from or output to any primary system; physical and electrical separation. "
-    "This is one of the design considerations the policy lists for keeping a failure minor<super>1</super>.",
+    "<b>Bounded interface (not full independence).</b> This revision adds <b>one</b> tie to an aircraft "
+    "system: a <b>receive-only, galvanically-isolated</b> audio tap off the audio panel (C.3a). The device "
+    "takes <b>no input that commands a function and produces no output to any aircraft system</b> \u2014 it only "
+    "listens. Physical/electrical separation is preserved on the power and signal-return side by the isolation "
+    "barrier. This is a <b>weaker claim than the former \u201cno electrical tie at all,\u201d</b> and is called "
+    "out as such; the argument now rests on <i>directionality + isolation</i> rather than total "
+    "separation<super>1</super>.",
     "<b>Qualitative safety evaluation is permitted</b> for non-complex equipment; a quantitative probabilistic "
     "analysis (and the DO-178C machinery that feeds it) is not required for a minor-failure advisory "
     "function<super>1</super>.",
@@ -458,13 +550,78 @@ story.append(Spacer(1, 4))
 story.append(callout(
     "<b>Honest caveats (must stay in the doc):</b> (1) This argument <b>must be agreed with the FAA ACO "
     "early</b> \u2014 the applicant proposes the classification; the FAA concurs. If the FAA judges the failure "
-    "condition above minor (e.g. because of over-reliance / automation-dependency human factors), the program "
+    "condition above minor (e.g. because of over-reliance / automation-dependency human factors, <b>or because "
+    "the audio-panel interface is judged to compromise an aircraft communication system</b>), the program "
     "moves to &sect;2 of the NORSEE policy (xx.1309, ARP4754A/ARP4761) and software assurance re-enters. "
-    "(2) \u201cNo DO-178C\u201d is <b>earned by architecture and procedural mitigations</b>, not by labeling. The "
-    "revert-to-unopened behavior, the validation gate, the dark-cockpit annunciation, the independence, and a "
-    "<b>mandatory limitation that the unit may not be used as a substitute for the required checklist</b> are "
-    "the price of that classification.", "warn"))
+    "(2) \u201cNo DO-178C\u201d is <b>earned by architecture and procedural mitigations</b>, not by labeling \u2014 "
+    "the revert-to-unopened behavior, the validation gate, the dark-cockpit annunciation, the <b>receive-only "
+    "isolated interface</b>, and a <b>mandatory limitation that the unit may not be used as a substitute for the "
+    "required checklist</b> are the price of that classification. "
+    "(3) <b>The audio-panel tap raises the installation bar.</b> What was arguably a minor alteration (a "
+    "self-contained box drawing only power) now wires into an <b>aircraft communication system</b>, pushing the "
+    "path toward an STC or careful field-approval scrutiny of the interface on most airframes (C.3a, C.5) \u2014 "
+    "do not assume a logbook-entry minor alteration any more. "
+    "(4) <b>VOX adds a human-factors failure mode.</b> Hands-free activation can <b>false-trigger</b> on ambient "
+    "cockpit speech, ATC audio, or crew conversation, potentially reading an unrequested checklist; it is "
+    "mitigated by VAD sensitivity tuning, a bounded trigger grammar, the retained PTT override, and the "
+    "standing limitation that the required checklist remains the authority (C.3a, D.3.2).", "warn"))
 
+story.append(Paragraph("C.3a &nbsp; Audio-panel interface impact (the honest part)", h2))
+story.append(Paragraph(
+    "Tapping the <b>aircraft audio panel</b> is the single biggest certification change in this revision. It "
+    "must be argued explicitly, because it directly <b>weakens the independence leg</b> of C.3 and changes the "
+    "installation classification. The goal is to make the interface so narrow and so demonstrably one-way that "
+    "the residual failure stays minor.", bodyj))
+story.append(Spacer(1, 4))
+story.append(Paragraph("<b>What the interface is \u2014 and is not:</b>", body))
+ai_iface = [
+    ["Property", "Design commitment"],
+    ["<b>Directionality</b>", "<b>Receive-only.</b> The device has no path to transmit, key a radio, mute, or "
+        "inject audio into the panel. There is no DAC, line-driver, or PTT line going <i>to</i> the panel."],
+    ["<b>Isolation (analog path)</b>", "A <b>600 " + OHM + " aviation audio ground-loop isolation transformer</b> "
+        "(e.g. Allen Avionics AGL series) provides galvanic isolation between the panel and the device; "
+        "high-impedance, line-level tap through a series resistor so the device is a negligible load."],
+    ["<b>Isolation (digital path)</b>", "A buffered, receive-only I2S input from a codec ADC fed by the same "
+        "isolated / high-impedance tap; no clock or data driven back toward any aircraft bus."],
+    ["<b>Fault containment</b>", "A short, open, or power loss inside the device cannot load down, ground, or "
+        "back-feed the panel \u2014 the isolation barrier and high-impedance tap see to that."],
+    ["<b>No operational credit</b>", "The panel feed is <i>listened to</i> for recognition only; it is never "
+        "relied on for any aircraft function."],
+]
+story.append(make_table(ai_iface, [1.5*inch, 5.2*inch]))
+story.append(Spacer(1, 6))
+story.append(Paragraph("<b>Why this still supports a minor classification:</b>", body))
+story.append(bullets([
+    "The audio panel and intercom <b>continue to function identically whether the device is present, powered, "
+    "or failed</b> \u2014 the tap is parallel and high-impedance.",
+    "The failure modes the tap could plausibly add (loading, ground loop, injected noise) are <b>removed by "
+    "isolation and the receive-only topology</b>, and are exactly what <b>DO-160G conducted/induced-susceptibility "
+    "and the audio-system installation tests</b> are meant to verify (C.4).",
+    "This is analogous to other <b>listen-only</b> cockpit aids (cockpit voice recorders, audio-logging headsets) "
+    "that tap audio without compromising the source.",
+]))
+story.append(Spacer(1, 4))
+story.append(Paragraph("<b>Why it nonetheless raises the bar (do not gloss over this):</b>", body))
+story.append(bullets([
+    "The interface now touches an <b>aircraft communication system</b>, so the installation will in most cases "
+    "be evaluated as a change that affects that system \u2014 pushing the path toward <b>STC / careful field "
+    "approval</b> rather than a simple logbook minor alteration (C.5).",
+    "The ACO may require <b>substantiation that the tap does not degrade comm audio</b> (intercom level, sidetone, "
+    "hot-mic/VOX behavior of the <i>panel's own</i> circuits) under all conditions, including device failure.",
+    "Audio-panel wiring practice matters: many panels <b>ground audio jacks only at the intercom</b> to avoid "
+    "ground loops, so the tap point and shield grounding must be coordinated with the specific panel's "
+    "installation manual.",
+]))
+story.append(Spacer(1, 6))
+story.append(Paragraph(
+    "<b>VOX (voice-activation) certification note.</b> Replacing push-to-talk with VOX as the primary trigger "
+    "introduces a <b>false-activation human-factors mode</b> (reading an unrequested checklist on stray "
+    "speech / ATC audio). Mitigations carried into the design: bounded wake-word + trigger grammar (not "
+    "open-vocabulary), tunable VAD sensitivity and hangover (Config Card, B.2), the <b>retained PTT override</b>, "
+    "and the standing limitation that the required checklist remains the authority. The ACO will want this mode "
+    "addressed in the safety / human-factors evaluation<super>1</super>.", bodyj))
+
+story.append(PageBreak())
 story.append(Paragraph("C.4 &nbsp; DO-160G environmental qualification plan", h2))
 story.append(Paragraph(
     "Categories a cockpit/avionics-bay unit would target. For the prototype these are <b>design targets</b>, "
@@ -479,7 +636,9 @@ env = [
     ["&sect;15 Magnetic Effect", "Class Z", "Small device; classify by measured deflection"],
     ["&sect;16 Power Input", "per installation (e.g. 28 VDC)", "Only if a 28 V variant is built; TVS + fuse"],
     ["&sect;17 Voltage Spike", "Cat A", "Input transient protection"],
-    ["&sect;19 Induced Signal Susceptibility", "Cat ZC", "Cockpit"],
+    ["&sect;18 AF Conducted Susceptibility", "Cat \u2014", "As applicable to the supply; <b>also relevant to the audio-panel input</b> \u2014 verify recognition is not corrupted by AF conducted noise"],
+    ["&sect;19 Induced Signal Susceptibility", "Cat ZC", "Cockpit; <b>audio-input cabling</b> routed/shielded per the panel's installation practice"],
+    ["&sect;20 RF Susceptibility", "Cat \u2014", "Aluminum case + grounded shield"],
     ["&sect;21 RF Emission", "<b>Cat M</b> (or better)", "<b>Wi-Fi/BT disabled in firmware</b> materially helps emissions"],
     ["&sect;22 Lightning Induced Transient", "as installed", "Behind-panel mounting reduces exposure"],
     ["&sect;25 ESD", "per &sect;25", "Bond exposed metal; recessed connectors"],
@@ -490,6 +649,13 @@ story.append(Spacer(1, 6))
 story.append(callout(
     "The deliberate choice to <b>disable Wi-Fi and Bluetooth in firmware</b> is both a security decision and "
     "an emissions-qualification advantage (&sect;21).", "info"))
+story.append(Spacer(1, 6))
+story.append(callout(
+    "<b>Audio-interface-specific evidence (beyond the table):</b> because the unit now taps the audio panel, "
+    "qualification should additionally demonstrate that \u2014 across all DO-160G conditions and <b>including a "
+    "failed/unpowered device</b> \u2014 the tap does not degrade audio-panel performance (intercom level, sidetone, "
+    "the panel's own VOX/hot-mic behavior). The isolation transformer and high-impedance receive-only topology "
+    "(C.3a) are the design basis for that demonstration.", "info"))
 
 story.append(PageBreak())
 story.append(Paragraph("C.5 &nbsp; Approval &amp; installation path (per airframe)", h2))
@@ -508,6 +674,14 @@ story.append(numbered([
     "type design (panel structure, electrical integration), an <b>STC</b> or field-approval path.",
     "<b>Part 25 aircraft</b> \u2014 skip NORSEE; pursue <b>STC</b> for the installation (C.1.1).",
 ]))
+story.append(Spacer(1, 6))
+story.append(callout(
+    "<b>The audio-panel interface raises the install classification.</b> Because the device now wires into an "
+    "<b>aircraft communication system</b> (the audio panel), step 4 should be approached assuming the interface "
+    "makes the alteration <b>more than minor</b> on most airframes \u2014 i.e. plan for an <b>STC or a field "
+    "approval that specifically substantiates the audio tap</b> (receive-only, isolated, no degradation of comm "
+    "audio per C.3a/C.4), not a bare logbook entry. The earlier power-only/independent design could credibly "
+    "claim a minor alteration; this one generally cannot.", "warn"))
 
 story.append(Paragraph("C.5.1 &nbsp; Where TSO and PMA fit (and don't, here)", h3))
 story.append(bullets([
@@ -544,13 +718,15 @@ csm = [
     ["Non-required, safety-enhancing", "NORSEE PS-AIR-21.8-1602, &sect; 21.8(d)", "Argued; not applied"],
     ["Minor change / minor failure", "Qualitative safety evaluation (C.3)", "Drafted; ACO concurrence pending"],
     ["Environmental", "RTCA/DO-160G (C.4) per AC 21-16G", "Targets defined; <b>not tested</b>"],
-    ["Software assurance", "<b>DO-178C not sought</b> \u2014 advisory/minor (C.3)", "Architecture supports it; ACO pending"],
+    ["Software assurance", "<b>DO-178C not sought</b> \u2014 advisory/minor (C.3)", "Architecture supports it; ACO concurrence pending"],
     ["Complex hardware", "DO-254 not invoked (simple COTS) \u2014 AC 20-152A", "N/A by design"],
     ["Human factors / color", "AC 25-11B conventions, dark-cockpit", "Implemented in design"],
-    ["Installation", "Minor alteration or STC, per airframe", "Per-aircraft; none performed"],
+    ["Audio-panel interface", "Receive-only + galvanic isolation (C.3a, C.4 &sect;18/&sect;19)", "Architecture defined; substantiation/test pending"],
+    ["VOX false-activation", "Bounded grammar + tunable VAD + retained PTT override (C.3a/D.3.2)", "Mitigations defined; ACO human-factors concurrence pending"],
+    ["Installation", "STC / substantiated field approval (audio tap is more than minor); minor-alteration unlikely", "Per-aircraft; none performed"],
     ["Part 25 airframes", "STC (NORSEE excluded)", "Flagged"],
 ]
-story.append(make_table(csm, [2.05*inch, 2.85*inch, 1.8*inch]))
+story.append(make_table(csm, [1.65*inch, 3.25*inch, 1.8*inch]))
 
 # Part C footnotes
 story.append(Spacer(1, 12))
@@ -578,38 +754,46 @@ ovr = [
     ["Item", "Value"],
     ["MCU", "<b>ESP32-S3</b> (dual-core LX7 @ 240 MHz) \u2014 <b>PSRAM required</b> by ESP-SR"],
     ["Recommended module", "ESP32-S3-WROOM-1 <b>N16R8</b> (16 MB flash, 8 MB octal PSRAM)"],
-    ["Speech stack", "Espressif <b>ESP-SR</b>: AFE (NS/VAD) &rarr; WakeNet \u201cHi ESP\u201d &rarr; MultiNet English"],
-    ["Mic input", "I2S MEMS microphone on <b>I2S_NUM_0</b>"],
-    ["Audio output", f"I2S Class-D amplifier on <b>I2S_NUM_1</b> &rarr; 4\u20138 {OHM} speaker"],
-    ["Config storage", "<b>microSD</b> \u2014 the Aircraft Card (Part B), FAT32"],
+    ["Speech stack", "Espressif <b>ESP-SR</b>: AFE (NS/<b>VAD &rarr; VOX</b>) &rarr; WakeNet \u201cHi ESP\u201d &rarr; MultiNet English"],
+    ["<b>Crew audio input</b>", "<b>From the aircraft audio panel</b> on <b>I2S_NUM_0</b>, selectable per install: <b>analog</b> (isolated line tap &rarr; I2S codec ADC) or <b>digital</b> (I2S codec ADC fed from a buffered tap). Onboard MEMS mic = bench-test only"],
+    ["Activation", "<b>VOX</b> (AFE VAD) primary, hands-free; <b>PTT</b> retained as manual override"],
+    ["Audio output", f"I2S Class-D amplifier on <b>I2S_NUM_1</b> &rarr; 4\u20138 {OHM} speaker (own speaker; not fed to the panel)"],
+    ["Config storage", "<b>two microSD slots</b> \u2014 slot 1 <b>Config Card</b>, slot 2 <b>Data Card</b> (Part B), FAT32"],
     ["Annunciation", "Applied Avionics split-legend switch (dark-cockpit, AC 25-11B)"],
 ]
 story.append(make_table(ovr, [1.6*inch, 5.1*inch]))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
-    "Two build paths: <b>Integrated</b> (ESP32-S3-Korvo-2 dev board \u2014 on-board dual mic, ES8311 codec, "
-    "NS4150 amp, microSD slot; best mic performance) or <b>DIY</b> (ESP32-S3 DevKitC-1 N16R8 + INMP441 mic + "
-    "MAX98357A amp + microSD breakout + the annunciator switch).", body))
+    "Two build paths: <b>Integrated</b> (ESP32-S3-Korvo-2 dev board \u2014 ES8311/ES7210 codec, NS4150 amp, "
+    "microSD slot; line-in repurposed for the audio-panel feed) or <b>DIY</b> (ESP32-S3 DevKitC-1 N16R8 + "
+    "audio-panel input stage [isolation transformer + I2S codec ADC] + MAX98357A amp + <b>two</b> microSD "
+    "breakouts + the annunciator switch). The earlier INMP441 MEMS mic remains available only as a bench-test "
+    "input.", body))
 
 story.append(Paragraph("D.2 &nbsp; Master pin map", h2))
 pins = [
     ["Function", "Macro", "GPIO", "Dir", "Notes"],
-    ["Push-to-talk", "<font name='Mono' size='7.5'>PTT_GPIO</font>", "0", "in (PU)", "BOOT button; active-low"],
+    ["PTT <b>override</b>", "<font name='Mono' size='7.5'>PTT_GPIO</font>", "0", "in (PU)", "BOOT button; active-low; <b>force-listen</b> override of VOX"],
     ["SELECT switch", "<font name='Mono' size='7.5'>SELECT_GPIO</font>", "10", "in (PU)", "IN = GPIO&rarr;GND (active-low)"],
     ["Legend OFF (white)", "<font name='Mono' size='7.5'>LEGEND_OFF_GPIO</font>", "21", "out", "top legend half (via driver)"],
     ["Legend FAULT (amber)", "<font name='Mono' size='7.5'>LEGEND_FAULT_GPIO</font>", "14", "out", "bottom legend half (via driver)"],
     ["Status LED", "<font name='Mono' size='7.5'>STATUS_LED_GPIO</font>", "48", "out", "on-board RGB on most S3 devkits"],
-    ["Mic bit clock", "<font name='Mono' size='7.5'>MIC_BCLK_GPIO</font>", "4", "out", "I2S0 BCLK &rarr; mic SCK"],
-    ["Mic word select", "<font name='Mono' size='7.5'>MIC_LRCLK_GPIO</font>", "5", "out", "I2S0 WS &rarr; mic WS"],
-    ["Mic data in", "<font name='Mono' size='7.5'>MIC_DIN_GPIO</font>", "6", "in", "mic SD &rarr; ESP DIN"],
-    ["SD clock", "<font name='Mono' size='7.5'>SD_CLK_GPIO</font>", "7", "out", "SDMMC CLK"],
+    ["Audio-in bit clock", "<font name='Mono' size='7.5'>AIN_BCLK_GPIO</font>", "4", "out", "I2S0 BCLK &rarr; codec/mic SCK"],
+    ["Audio-in word select", "<font name='Mono' size='7.5'>AIN_LRCLK_GPIO</font>", "5", "out", "I2S0 WS &rarr; codec/mic WS"],
+    ["Audio-in data", "<font name='Mono' size='7.5'>AIN_DIN_GPIO</font>", "6", "in", "codec ADC / mic SD &rarr; ESP DIN"],
+    ["Audio-in master clock", "<font name='Mono' size='7.5'>AIN_MCLK_GPIO</font>", "3", "out", "<b>MCLK to the codec</b> (ES8388/ES7210 need it; INMP441/PCM1808 do not)"],
+    ["Codec I2C SDA", "<font name='Mono' size='7.5'>CODEC_SDA_GPIO</font>", "1", "i/o", "ES-series codec control bus (digital path)"],
+    ["Codec I2C SCL", "<font name='Mono' size='7.5'>CODEC_SCL_GPIO</font>", "2", "out", "ES-series codec control bus (digital path)"],
+    ["SD clock", "<font name='Mono' size='7.5'>SD_CLK_GPIO</font>", "7", "out", "SDMMC CLK (<b>shared</b> by both card slots)"],
     ["SD command", "<font name='Mono' size='7.5'>SD_CMD_GPIO</font>", "9", "i/o", "SDMMC CMD (needs pull-up)"],
     ["SD data 0", "<font name='Mono' size='7.5'>SD_D0_GPIO</font>", "8", "i/o", "SDMMC DAT0 (needs pull-up)"],
+    ["Config-card detect", "<font name='Mono' size='7.5'>SD_CFG_CD_GPIO</font>", "47", "in (PU)", "slot-1 card-detect (Config Card)"],
+    ["Data-card detect", "<font name='Mono' size='7.5'>SD_DAT_CD_GPIO</font>", "38", "in (PU)", "slot-2 card-detect (Data Card)"],
     ["Speaker bit clock", "<font name='Mono' size='7.5'>SPK_BCLK_GPIO</font>", "15", "out", "I2S1 BCLK &rarr; amp BCLK"],
     ["Speaker word select", "<font name='Mono' size='7.5'>SPK_LRCLK_GPIO</font>", "16", "out", "I2S1 WS &rarr; amp LRC"],
     ["Speaker data out", "<font name='Mono' size='7.5'>SPK_DOUT_GPIO</font>", "17", "out", "I2S1 DOUT &rarr; amp DIN"],
 ]
-story.append(make_table(pins, [1.4*inch, 1.6*inch, 0.5*inch, 0.6*inch, 2.6*inch]))
+story.append(make_table(pins, [1.35*inch, 1.55*inch, 0.45*inch, 0.55*inch, 2.8*inch]))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
     "<b>Polarity macros:</b> <font name='Mono' size='8'>PTT_ACTIVE_LOW=1</font>, "
@@ -618,29 +802,71 @@ story.append(Paragraph(
     "<font name='Mono' size='8'>LAMP_TEST_MS=2000</font>. Set any unused output to <font name='Mono' size='8'>-1</font> "
     "to disable it cleanly.", small))
 story.append(Spacer(1, 4))
+story.append(Paragraph(
+    "<b>Two-slot SD note:</b> the demo shares one SDMMC 1-bit bus (CLK/CMD/DAT0) across both card slots, "
+    "distinguished by per-slot <b>card-detect</b> lines and by mounting each at its own path "
+    "(<font name='Mono' size='8'>/sdcard-config</font>, <font name='Mono' size='8'>/sdcard-data</font>). A "
+    "production unit may instead give each slot its own SPI or SDMMC bus to remove any contention; the firmware "
+    "reads Config first, then Data (B.4).", small))
+story.append(Spacer(1, 4))
 story.append(callout(
     "<b>Reserved / avoid pins (N16R8):</b> GPIO33\u201337 (octal PSRAM/flash bus \u2014 do not use), GPIO19/20 "
     "(USB D-/D+), GPIO0/45/46 (strapping \u2014 must boot in the right state), GPIO26\u201332 (SPI flash on some "
-    "modules). GPIO0 here is only the BOOT/PTT button, so it is safe.", "warn"))
+    "modules). GPIO0 here is only the BOOT/PTT button, so it is safe. GPIO1/2/3 are used here for the codec "
+    "I2C + MCLK; on the Korvo-2 use that board's BSP assignments instead.", "warn"))
 
 story.append(PageBreak())
 story.append(Paragraph("D.3 &nbsp; Per-device wiring", h2))
 story.append(Paragraph(
-    "<b>D.3.1 INMP441 MEMS mic &rarr; ESP32-S3 (I2S_NUM_0).</b> Supply 1.8\u20133.3 V (never 5 V), ~2.2\u20132.5 mA. "
-    "VDD&rarr;3V3, GND&rarr;GND, SCK&rarr;GPIO4, WS&rarr;GPIO5, SD&rarr;GPIO6, L/R&rarr;GND (left channel). Decouple "
-    "0.1 &micro;F; 100 k" + OHM + " pulldown on SD; never clock with VDD off.", body))
+    "<b>D.3.1 Audio-panel input stage (the crew-audio source, I2S_NUM_0).</b> Crew speech comes from the "
+    "<b>aircraft audio panel</b>, not an onboard mic. The source is chosen by the Config Card "
+    "(<font name='Mono' size='8'>audio_source</font>); both paths terminate as an <b>I2S input</b> to the "
+    "ESP32-S3 and feed the ESP-SR AFE.", bodyj))
+story.append(bullets([
+    "<b>Analog path (<font name='Mono' size='8'>analog</font>).</b> Tap a headphone/intercom/line output from "
+    "the panel (aviation audio is typically ~150\u2013600 " + OHM + ", ~1\u20135 V RMS). Feed it through a "
+    "<b>600 " + OHM + " audio ground-loop isolation transformer</b> (e.g. Allen Avionics AGL series) for "
+    "galvanic isolation, then through a <b>~220\u2013470 " + OHM + " series resistor + simple RC anti-alias</b> "
+    "into the <b>line-in of an I2S codec ADC</b> (ES8388/ES7210 with MCLK on GPIO3, I2C control on GPIO1/2; or "
+    "PCM1808/CS5343 which self-clock). The tap is <b>high-impedance and parallel</b> so the panel sees a "
+    "negligible load; the device cannot back-feed the panel. Scale the divider so panel line level maps to the "
+    "codec's full-scale input without clipping.",
+    "<b>Digital path (<font name='Mono' size='8'>digital</font>).</b> Where the codec sits closer to the "
+    "source, take a buffered, <b>receive-only</b> I2S/line feed into the same codec ADC. There is <b>no I2S "
+    "output toward the panel</b> \u2014 BCLK/WS/MCLK are generated by the ESP32 for the ADC only, and no data "
+    "line is driven back toward any aircraft bus.",
+    "<b>Codec wiring:</b> SCK&rarr;GPIO4, WS&rarr;GPIO5, ADC_DATA&rarr;GPIO6, MCLK&rarr;GPIO3, I2C "
+    "SDA/SCL&rarr;GPIO1/2; supply per the codec (1.8\u20133.3 V analog/digital rails); decouple each rail "
+    "0.1 &micro;F.",
+    "<b>Bench-test option only:</b> an <b>INMP441</b> MEMS mic may be wired in place of the codec for desk "
+    "testing (VDD&rarr;3V3, SCK&rarr;GPIO4, WS&rarr;GPIO5, SD&rarr;GPIO6, L/R&rarr;GND, 100 k" + OHM + " "
+    "pulldown on SD, never clock with VDD off). <b>This is not the installed audio source</b> and must not be "
+    "used in an aircraft (it does not hear the panel and breaks the receive-from-panel model).",
+]))
 story.append(Paragraph(
-    "<b>D.3.2 MAX98357A Class-D amp &rarr; ESP32-S3 (I2S_NUM_1).</b> Supply 2.5\u20135.5 V; ~2.4 mA quiescent; "
+    "<b>D.3.2 VOX &amp; PTT override.</b> Recognition is gated by the AFE <b>VAD</b> (VOX): the device listens "
+    "whenever speech is detected on the panel feed, tuned by the Config Card "
+    "(<font name='Mono' size='8'>vox.vad_sensitivity</font>, <font name='Mono' size='8'>vox.hangover_ms</font>). "
+    "The <b>PTT</b> button (GPIO0, active-low) is a <b>force-listen override</b> \u2014 holding it opens "
+    "recognition regardless of VAD, and with <font name='Mono' size='8'>vox.mode = ptt_only</font> it becomes "
+    "the sole trigger (VOX disabled). PTT is debounced in software. There is <b>no PTT/keying line toward the "
+    "aircraft</b> \u2014 this button only tells the device's own recognizer to listen.", bodyj))
+story.append(Paragraph(
+    "<b>D.3.3 MAX98357A Class-D amp &rarr; ESP32-S3 (I2S_NUM_1).</b> Supply 2.5\u20135.5 V; ~2.4 mA quiescent; "
     f"peak ~650 mA at 5 V/4 {OHM}; no MCLK. VIN&rarr;5 V (full output), GND&rarr;GND, BCLK&rarr;GPIO15, "
     "LRC&rarr;GPIO16, DIN&rarr;GPIO17, GAIN NC = 9 dB, SD/mode float = mono. <b>OUT+/OUT&minus; are bridge-tied "
-    "\u2014 never to GND.</b>", body))
+    "\u2014 never to GND.</b> The device drives its <b>own speaker</b>; its output is <b>never</b> routed back "
+    "into the audio panel.", bodyj))
 story.append(Paragraph(
-    "<b>D.3.3 microSD (the Aircraft Card) &rarr; SDMMC 1-bit.</b> 3.3 V card. CLK&rarr;GPIO7, CMD&rarr;GPIO9 "
-    "(10 k" + OHM + "&rarr;3V3), DAT0&rarr;GPIO8 (10 k" + OHM + "&rarr;3V3), VDD&rarr;3V3, VSS&rarr;GND. FAT32; "
-    "layout per Part B.", body))
+    "<b>D.3.4 Two microSD card slots &rarr; SDMMC 1-bit.</b> 3.3 V cards. Shared bus CLK&rarr;GPIO7, "
+    "CMD&rarr;GPIO9 (10 k" + OHM + "&rarr;3V3), DAT0&rarr;GPIO8 (10 k" + OHM + "&rarr;3V3), VDD&rarr;3V3, "
+    "VSS&rarr;GND. <b>Slot 1 = Config Card</b> (detect on GPIO47, mount "
+    "<font name='Mono' size='8'>/sdcard-config</font>), <b>slot 2 = Data Card</b> (detect on GPIO38, mount "
+    "<font name='Mono' size='8'>/sdcard-data</font>). FAT32; layouts per Part B. (Production option: separate "
+    "bus per slot.)", bodyj))
 story.append(Paragraph(
-    "<b>D.3.4 Discrete inputs.</b> SELECT (GPIO10): LOW = selected IN; pull-up HIGH = OUT. PTT (GPIO0): "
-    "LOW = pressed. Each is a simple SPST to GND; debounce in software.", body))
+    "<b>D.3.5 Discrete inputs.</b> SELECT (GPIO10): LOW = selected IN; pull-up HIGH = OUT. PTT (GPIO0): "
+    "LOW = pressed (override). Each is a simple SPST to GND; debounce in software.", body))
 
 story.append(Paragraph("D.4 &nbsp; Annunciator switch (split-legend, dark-cockpit)", h2))
 ann = [
@@ -684,15 +910,18 @@ story.append(PageBreak())
 story.append(Paragraph("D.6 &nbsp; Power budget", h2))
 pwr = [
     ["Rail", "Loads", "Typical", "Peak"],
-    ["<b>3.3 V</b>", "ESP32-S3 (Wi-Fi off) + mic + microSD", "~80\u2013150 mA", "~250 mA (SD init / SR burst)"],
+    ["<b>3.3 V</b>", "ESP32-S3 (Wi-Fi off) + audio codec + <b>two</b> microSD slots", "~90\u2013170 mA", "~280 mA (SD init / SR burst)"],
     ["<b>5 V</b>", "MAX98357A output", "a few mA idle", f"<b>~650 mA</b> (5 V/4 {OHM}, loud)"],
     ["<b>Lamp rail</b>", "up to 2 legend halves", "0 (dark)", "per lamp spec (e.g. 28 V incand.)"],
 ]
 story.append(make_table(pwr, [1.1*inch, 2.9*inch, 1.35*inch, 1.35*inch]))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
-    "Power from <b>USB 5 V &ge; 1 A</b>. Keep a 28 V legend supply separate from logic 5 V (grounds common "
-    "only). Bulk decoupling &ge; 100 &micro;F near the amp VIN plus 0.1 &micro;F per device.", body))
+    "The audio-input codec (a few mA\u2013~20 mA) and the second microSD slot add a little to the 3.3 V rail; the "
+    "isolation transformer is passive. Power from <b>USB 5 V &ge; 1 A</b>. Keep a 28 V legend supply separate "
+    "from logic 5 V (grounds common only). Bulk decoupling &ge; 100 &micro;F near the amp VIN plus 0.1 &micro;F "
+    "per device. The audio-panel tap draws <b>no power from the aircraft</b> and is isolated from the device's "
+    "own grounds through the transformer (analog path).", body))
 
 story.append(Paragraph("D.7 &nbsp; Processor selection", h2))
 story.append(Paragraph(
@@ -723,11 +952,13 @@ story.append(Paragraph("D.8 &nbsp; Firmware build notes", h2))
 fw = [
     ["Topic", "Value"],
     ["Framework", "<b>ESP-IDF &ge; 5.2</b>"],
-    ["Components", "<font name='Mono' size='8'>esp-sr</font>, <font name='Mono' size='8'>esp_spiffs</font>, <font name='Mono' size='8'>driver</font>, <font name='Mono' size='8'>json</font> (cJSON), <font name='Mono' size='8'>fatfs</font>, <font name='Mono' size='8'>sdmmc</font>, <font name='Mono' size='8'>esp_driver_sdmmc</font>"],
+    ["Components", "<font name='Mono' size='8'>esp-sr</font>, <font name='Mono' size='8'>esp_spiffs</font>, <font name='Mono' size='8'>driver</font>, <font name='Mono' size='8'>json</font> (cJSON), <font name='Mono' size='8'>fatfs</font>, <font name='Mono' size='8'>sdmmc</font>, <font name='Mono' size='8'>esp_driver_sdmmc</font>, <font name='Mono' size='8'>esp_codec_dev</font> (codec init for the digital/analog path)"],
     ["Speech models", "WakeNet <font name='Mono' size='8'>WN9_HIESP</font>; MultiNet English <font name='Mono' size='8'>mn6_en</font>/<font name='Mono' size='8'>mn7_en</font> (S3 only)"],
     ["Partitions", "factory app 3 MB + model 5 MB + storage 2 MB &rarr; needs <b>16 MB</b> flash (N16R8)"],
+    ["Audio input", "ESP-SR AFE fed from I2S0 (codec ADC); <b>VAD&rarr;VOX</b> gating, PTT override; codec init from Config Card <font name='Mono' size='8'>audio.codec</font>"],
+    ["Two-card load", "Config Card first (<font name='Mono' size='8'>/sdcard-config/config.json</font>) &rarr; init audio source + VOX &rarr; then matching Data Card folder (<font name='Mono' size='8'>/sdcard-data/&lt;aircraft&gt;/</font>)"],
     ["Grammar rules", "lowercase + single spaces; spell numbers (\u201cv one\u201d); ~200-cmd cap"],
-    ["Fault behavior", "any card fault &rarr; <font name='Mono' size='8'>ST_FAULT</font>, amber legend, <b>no checklist shown</b>"],
+    ["Fault behavior", "any card/config fault &rarr; <font name='Mono' size='8'>ST_FAULT</font>, amber legend, <b>no checklist shown</b> (B.4)"],
 ]
 story.append(make_table(fw, [1.5*inch, 5.2*inch]))
 
@@ -735,22 +966,26 @@ story.append(Paragraph("D.9 &nbsp; Bill of materials (DIY build)", h2))
 bom = [
     ["Qty", "Part", "Spec / example"],
     ["1", "ESP32-S3 DevKit", "DevKitC-1 <b>N16R8</b> (PSRAM)"],
-    ["1", "I2S MEMS mic", "<b>INMP441</b> / ICS-43434 breakout"],
+    ["1", "<b>Audio-panel input codec</b>", "I2S codec ADC with line-in: <b>ES8388 / ES7210</b> (need MCLK+I2C) or <b>PCM1808 / CS5343</b> (self-clocking)"],
+    ["1", "<b>Audio isolation transformer</b>", f"600 {OHM}:600 {OHM} aviation audio ground-loop isolator (<b>Allen Avionics AGL</b> series)"],
+    ["1", "Input network", f"~220\u2013470 {OHM} series resistor + RC anti-alias for the analog tap"],
     ["1", "I2S amp", "<b>MAX98357A</b> breakout"],
     ["1", "Speaker", f"4\u20138 {OHM}, &ge; 2 W"],
-    ["1", "microSD card + breakout", "FAT32 (the Aircraft Card)"],
+    ["<b>2</b>", "microSD card + breakout", "FAT32 \u2014 <b>Config Card</b> (slot 1) + <b>Data Card</b> (slot 2)"],
     ["1", "Annunciator switch", "Applied Avionics VIVISUN/Korry split-legend (or 2 LEDs for bench)"],
     ["2", "Lamp driver", "logic-level N-MOSFET (2N7002/AO3400) or NPN (2N2222)"],
     ["4", "Resistors", f"1 k{OHM} &times;2 (gate), 10 k{OHM} &times;2 (pulldown)"],
-    ["2\u20133", "Pull-ups", f"10 k{OHM} on SD CMD/DAT0 (if breakout lacks them)"],
-    ["\u2014", "Caps", "0.1 &micro;F per device, 100 &micro;F bulk near amp"],
-    ["1", "PTT button", "momentary SPST (or use BOOT)"],
+    ["2\u20134", "Pull-ups", f"10 k{OHM} on SD CMD/DAT0; codec I2C pull-ups if needed"],
+    ["\u2014", "Caps", "0.1 &micro;F per device/rail, 100 &micro;F bulk near amp"],
+    ["1", "PTT button", "momentary SPST (or use BOOT) \u2014 <b>VOX override</b>"],
+    ["(opt.)", "INMP441 MEMS mic", "<b>bench-test input only</b>, not the installed source"],
 ]
 story.append(make_table(bom, [0.55*inch, 1.85*inch, 4.3*inch]))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
-    "Integrated alternative: <b>ESP32-S3-Korvo-2</b> (~$45\u201355) replaces mic/codec/amp/SD; use its BSP pin "
-    "map and ES8311 codec init.", small))
+    "Integrated alternative: <b>ESP32-S3-Korvo-2</b> (~$45\u201355) provides codec/amp/SD on-board; use its BSP "
+    "pin map and codec (ES8311/ES7210) init, and repurpose its line-in for the audio-panel feed. A production "
+    "unit adds the second card slot.", small))
 
 story.append(Paragraph("D.10 &nbsp; System wiring diagram", h2))
 if os.path.exists(DIAGRAM):
@@ -766,8 +1001,8 @@ if os.path.exists(DIAGRAM):
     img = Image(DIAGRAM, width=disp_w, height=disp_h)
     img.hAlign = "CENTER"
     story.append(img)
-    story.append(Paragraph("Complete system wiring \u2014 ESP32-S3, mic, amp, microSD (Aircraft Card), and "
-                           "split-legend annunciator with per-half lamp drivers.", cap))
+    story.append(Paragraph("Complete system wiring \u2014 ESP32-S3, audio input, amp, two microSD cards (Config + "
+                           "Data), and split-legend annunciator with per-half lamp drivers.", cap))
 
 # ================= PART E =================
 story.append(PageBreak())
@@ -779,14 +1014,14 @@ story += part_divider("E", "Enclosure Specification",
 story.append(Paragraph("E.1 &nbsp; Two-piece architecture", h2))
 arch2 = [
     ["Piece", "Contents", "Where", "Why"],
-    ["<b>A. Panel bezel</b>", "Split-legend annunciator switch, speaker + grille, optional PTT", "Front panel / pedestal, on the <b>DZUS rail</b>", "Crew must see/reach it; annunciator in the normal scan"],
-    ["<b>B. Remote box</b>", "ESP32-S3, mic, amp, <b>microSD slot</b>, lamp-driver, power conditioning", "Avionics bay / behind-panel, blind", "Keeps heat, the card slot, and wiring out of the panel"],
+    ["<b>A. Panel bezel</b>", "Split-legend annunciator switch, speaker + grille, <b>PTT override</b> button", "Front panel / pedestal, on the <b>DZUS rail</b>", "Crew must see/reach it; dark-cockpit annunciator in the normal scan"],
+    ["<b>B. Remote box</b>", "ESP32-S3, audio-input stage (isolation transformer + codec), amp, <b>two microSD card slots</b>, lamp-driver, power conditioning", "Avionics bay / behind-panel, blind", "Keeps heat, the card slots, and wiring out of the panel; close to the audio-panel tap point"],
 ]
-story.append(make_table(arch2, [1.15*inch, 2.2*inch, 1.65*inch, 1.7*inch]))
+story.append(make_table(arch2, [1.05*inch, 2.5*inch, 1.5*inch, 1.65*inch]))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
     "A single all-in-one box is acceptable for a pure bench demo, but the two-piece split mirrors real "
-    "remote-mount avionics and keeps the mic away from fan/avionics noise.", body))
+    "remote-mount avionics and keeps the audio-input stage near the panel tap.", body))
 
 story.append(Paragraph("E.2 &nbsp; Piece A \u2014 panel bezel", h2))
 story.append(bullets([
@@ -808,22 +1043,29 @@ story.append(bullets([
 
 story.append(Paragraph("E.3 &nbsp; Piece B \u2014 remote processor box", h2))
 story.append(bullets([
-    "<b>Envelope:</b> sized around the ESP32-S3 DevKitC-1 (&asymp; 70&times;26 mm) plus amp, mic, microSD "
-    "breakout, and the 2-channel lamp-driver; practical outer <b>&asymp; 110 &times; 80 &times; 45 mm</b>. "
-    "Confirm against the actual stacked board set.",
+    "<b>Envelope:</b> sized around the ESP32-S3 DevKitC-1 (&asymp; 70&times;26 mm) plus amp, the audio-input "
+    "stage (codec + isolation transformer), <b>two</b> microSD breakouts, and the 2-channel lamp-driver; "
+    "practical outer <b>&asymp; 120 &times; 85 &times; 45 mm</b> (slightly larger than before to fit the "
+    "transformer + second slot). Confirm against the actual stacked board set.",
     "<b>Mounting:</b> internal standoffs / M2.5 brass inserts \u2014 boards screwed down, not floating "
-    "(vibration). Keep the mic away from the amp/any fan; if the mic lives here, add a meshed acoustic port; "
-    "mic may instead live in the bezel (keep the I2S run &lt; 150 mm).",
-    "<b>Access &amp; connectors:</b> externally swappable <b>microSD (Aircraft Card)</b> carrier labeled "
-    "<font name='Mono' size='8'>CONFIG CARD \u2014 FAT32</font> (swap without opening the box); covered/recessed "
-    "<b>USB-C</b> service port (bench use only); one keyed, positive-latching main connector (small "
-    "MIL-circular or 9-pin D-sub) carrying SELECT, both legend drives, PTT, speaker +/&minus;, power/ground "
-    "(pinout from <font name='Mono' size='8'>board_pins.h</font>). Accept USB 5 V &ge; 1 A; optional internal "
-    "<b>28 V&rarr;5 V DC-DC</b> (&ge; 2 A) with TVS + fuse if a 28 V bus mock-up is wanted (mark as demo "
-    "regulator, not DO-160 qualified).",
+    "(vibration). Keep the audio-input stage and its shielded cabling away from the amp and the switching "
+    "DC-DC; the isolation transformer mounts solidly (it is a magnetic part).",
+    "<b>Card slots:</b> <b>two externally-swappable microSD carriers</b>, clearly and distinctly labeled "
+    "<font name='Mono' size='8'>CONFIG CARD \u2014 FAT32</font> (slot 1) and <font name='Mono' size='8'>DATA "
+    "CARD \u2014 FAT32</font> (slot 2), keyed or spaced so they cannot be confused/swapped; both swappable "
+    "without opening the box. The Config Card carrier should accept a <b>write-protect-locked</b> card.",
+    "<b>Access &amp; connectors:</b> covered/recessed <b>USB-C</b> service port (bench use only); one keyed, "
+    "positive-latching main connector (small MIL-circular or D-sub) carrying SELECT, both legend drives, PTT, "
+    "speaker +/&minus;, power/ground (pinout from <font name='Mono' size='8'>board_pins.h</font>); <b>plus a "
+    "separate, shielded, clearly-labeled <font name='Mono' size='8'>AUDIO IN (ISOLATED, RX ONLY)</font> "
+    "connector</b> for the audio-panel tap \u2014 kept on its own keyed connector so it can never be mis-mated to "
+    "power or the speaker, with the isolation transformer <b>inside</b> the box on the panel side of the codec. "
+    "Accept USB 5 V &ge; 1 A; optional internal <b>28 V&rarr;5 V DC-DC</b> (&ge; 2 A) with TVS + fuse if a 28 V "
+    "bus mock-up is wanted (mark as demo regulator, not DO-160 qualified).",
     "<b>Material/EMI:</b> aluminum preferred (doubles as EMI shield + heatsink); if plastic, add a grounded "
     "conductive shield liner/coating; single-point chassis ground stud bonded to the connector shell and "
-    "ESP32 ground.",
+    "ESP32 ground. Route the audio-in shield per the panel's grounding practice (often <b>grounded only at the "
+    "intercom</b> \u2014 see C.3a).",
 ]))
 
 story.append(PageBreak())
@@ -837,10 +1079,11 @@ story.append(bullets([
     "<b>Environmental:</b> design toward the DO-160G categories in <b>C.4</b> (Cat A2 temp, Cat S vibration, "
     "etc.) \u2014 design guidance for the prototype, formal test for a productized unit.",
     "<b>Labeling:</b> placard <font name='Mono' size='8'>DEMO / TRAINING ONLY \u2014 NOT FOR FLIGHT</font>; box "
-    "exterior carries unit name, serial/asset field, <font name='Mono' size='8'>FAT32</font> card format, and "
-    "the USB \u201cbench use only\u201d note; annunciator legends <font name='Mono' size='8'>VOICE CHKLST OFF</font> "
-    "(white) / <font name='Mono' size='8'>VOICE CHKLST FAULT</font> (amber); amber = caution, white = status "
-    "per AC 25-11B.",
+    "exterior carries unit name, serial/asset field, the <b>two card-slot labels</b> (<font name='Mono' "
+    "size='8'>CONFIG CARD</font> / <font name='Mono' size='8'>DATA CARD</font>, FAT32), the <font name='Mono' "
+    "size='8'>AUDIO IN \u2014 ISOLATED, RX ONLY</font> connector marking, and the USB \u201cbench use only\u201d "
+    "note; annunciator legends <font name='Mono' size='8'>VOICE CHKLST OFF</font> (white) / <font name='Mono' "
+    "size='8'>VOICE CHKLST FAULT</font> (amber); amber = caution, white = status per AC 25-11B.",
 ]))
 
 story.append(Paragraph("E.5 &nbsp; Deliverables &amp; open items for the engineer", h2))
@@ -853,13 +1096,16 @@ story.append(Paragraph(
 story.append(callout(
     "<b>Open items (confirm before CAD):</b> the <b>exact Applied Avionics switch part number</b> \u2014 the single "
     "most critical dimension; nothing finalizes until it is fixed. Also: DZUS slot vs. 3-1/8 in round hole in "
-    "the target panel; where the mic lives; whether a 28 V input is wanted; and the speaker model (sets grille "
-    "open area + rear-volume cavity).", "warn"))
+    "the target panel; the <b>audio-panel tap point, level, and grounding</b> for the target installation (sets "
+    "the isolation-transformer + divider design); the <b>codec part</b> for the digital path (sets the "
+    "I2C/MCLK init); whether a 28 V input is wanted; and the speaker model (sets grille open area + rear-volume "
+    "cavity).", "warn"))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
     "<b>Reference dimensions:</b> DZUS pitch 9.525 mm &middot; DZUS hole 6.48 mm &middot; backplate 1.6 mm "
     "&middot; first fastener offset 14.29 mm &middot; pedestal panel width &asymp; 146 mm &middot; round "
-    "instrument hole 79.4 mm &middot; remote box &asymp; 110 &times; 80 &times; 45 mm &middot; speaker 4\u20138 "
+    "instrument hole 79.4 mm &middot; remote box &asymp; 120 &times; 85 &times; 45 mm &middot; two microSD slots "
+    "&middot; isolated RX-only audio-in connector &middot; speaker 4\u20138 "
     + OHM + " &ge; 2 W.", small))
 
 # ================= PART F =================
@@ -886,7 +1132,12 @@ story.append(make_table(rows, [0.4*inch, 5.5*inch, 0.8*inch], font_styles=fss))
 
 story.append(Paragraph("Hardware &amp; components", h3))
 hw_src = [
-    ("INMP441 microphone datasheet", "https://www.farnell.com/datasheets/1824785.pdf"),
+    ("Allen Avionics AGL audio ground-loop isolation transformers (analog audio-panel tap)", "https://www.allenavionics.com/categories/agl-audio-ground-loop-isolation-transformers"),
+    ("Everest-Semi ES8388 audio codec (line-in I2S ADC, MCLK + I2C)", "https://dl.radxa.com/rock2/docs/hw/datasheet/ES8388%20user%20Guide.pdf"),
+    ("ES7210 multichannel audio ADC (Espressif-supported codec)", "https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/dev-boards/board-esp32-s3-korvo-2.html"),
+    ("TI PCM1808 stereo audio ADC (self-clocking I2S input)", "https://www.ti.com/lit/ds/symlink/pcm1808.pdf"),
+    ("Espressif ESP-SR AFE / VAD (voice-activity detection for VOX)", "https://github.com/espressif/esp-sr"),
+    ("INMP441 microphone datasheet (bench-test option only)", "https://www.farnell.com/datasheets/1824785.pdf"),
     ("MAX98357A amplifier datasheet (Analog Devices)", "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf"),
     ("MAX98357A breakout guide (Adafruit)", "https://cdn-learn.adafruit.com/downloads/pdf/adafruit-max98357-i2s-class-d-mono-amp.pdf"),
     ("ESP32-S3 GPIO drive current discussion", "https://esp32.com/viewtopic.php?t=20097"),
@@ -939,7 +1190,7 @@ def draw_cover(canvas, doc):
     canvas.drawString(ML, PAGE_H - 2.4*inch, "Checklist System")
     canvas.setFont("DM-M", 14)
     canvas.setFillColor(colors.HexColor("#BCE2E7"))
-    canvas.drawString(ML, PAGE_H - 2.85*inch, "Generic advisory reader \u00b7 driven by the installed Aircraft Card")
+    canvas.drawString(ML, PAGE_H - 2.85*inch, "Generic advisory reader \u00b7 audio-panel input \u00b7 Config + Data cards")
     canvas.setFillColor(INK)
     canvas.setFont("DM", 11)
     y = PAGE_H - 4.05*inch

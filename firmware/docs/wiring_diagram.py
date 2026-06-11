@@ -24,7 +24,7 @@ ESPED   = "#4f6aa0"
 C_3V3   = "#ff5d5d"   # red
 C_5V    = "#ff9f43"   # orange
 C_GND   = "#5b6577"   # gray
-C_I2S_M = "#37d39a"   # green (mic I2S)
+C_I2S_M = "#37d39a"   # green (audio-in I2S)
 C_I2S_S = "#36b3ff"   # blue  (speaker I2S)
 C_SD    = "#c98bff"   # purple (SD)
 C_CTRL  = "#ffd84d"   # yellow (buttons/select)
@@ -62,7 +62,7 @@ def pin(x,y,label,color,side="left",size=13):
 parts.append(f'<rect width="{W}" height="{H}" fill="{BG}"/>')
 # title
 text(40,52,"CJ2 Voice Emergency Checklist — DIY Wiring Diagram", 30, INK, weight="700")
-text(40,80,"ESP32-S3 + INMP441 mic + MAX98357A amp + microSD + Applied Avionics split-legend annunciator switch",
+text(40,80,"ESP32-S3 + audio-panel input (isolated I2S codec) + MAX98357A amp + two microSD (Config + Data) + Applied Avionics split-legend switch",
      16, SUB)
 text(40,102,"Pin numbers match firmware/main/board_pins.h   •   DEMO / TRAINING ONLY — NOT FOR FLIGHT", 13, C_5V, weight="600")
 
@@ -79,14 +79,19 @@ esp_left = [
     (300,"3V3",  C_3V3),
     (335,"5V",   C_5V),
     (370,"GND",  C_GND),
-    (430,"G4  BCLK", C_I2S_M),
-    (465,"G5  WS",   C_I2S_M),
-    (500,"G6  DIN",  C_I2S_M),
-    (560,"G7  CLK",  C_SD),
-    (595,"G9  CMD",  C_SD),
-    (630,"G8  D0",   C_SD),
-    (700,"G10 SEL",  C_CTRL),
-    (735,"G0  PTT",  C_CTRL),
+    (425,"G4  AIN BCLK", C_I2S_M),
+    (455,"G5  AIN WS",   C_I2S_M),
+    (485,"G6  AIN DIN",  C_I2S_M),
+    (515,"G3  AIN MCLK", C_I2S_M),
+    (555,"G1  SDA",  C_SD),
+    (580,"G2  SCL",  C_SD),
+    (615,"G7  CLK",  C_SD),
+    (640,"G9  CMD",  C_SD),
+    (665,"G8  D0",   C_SD),
+    (700,"G47 CFG CD", C_SD),
+    (725,"G38 DAT CD", C_SD),
+    (765,"G10 SEL",  C_CTRL),
+    (790,"G0  PTT",  C_CTRL),
 ]
 
 # right-side ESP pins (x = ex+ew)
@@ -107,25 +112,30 @@ for y,lab,col in esp_left:
     dot(LX,y,col)
     text(LX-12,y+4,lab,13,SUB,"end",mono=True)
 
-# ================= MICROPHONE (top-left) =================
-mx,my,mw,mh = 70, 250, 300, 190
+# ================= AUDIO-PANEL INPUT (top-left) =================
+mx,my,mw,mh = 70, 230, 300, 240
 rect(mx,my,mw,mh,PANEL,rx=12)
-text(mx+16,my+30,"INMP441 MIC", 18, INK,weight="700")
-text(mx+16,my+50,"I2S MEMS  -  1.8 to 3.3 V  -  ~2.5 mA", 12, SUB)
-mp = [(my+95,"VDD",C_3V3),(my+120,"GND",C_GND),(my+145,"SCK",C_I2S_M),
-      (my+165,"WS",C_I2S_M),(my+185,"SD",C_I2S_M)]
+text(mx+16,my+28,"AUDIO-PANEL INPUT", 17, INK,weight="700")
+text(mx+16,my+48,"Crew audio from the panel (RX-only)", 11, SUB)
+text(mx+16,my+66,"Isolation xfmr + I2S codec ADC", 11, SUB)
+text(mx+16,my+84,"analog tap OR buffered digital - selectable", 11, C_5V)
+# codec pin stubs (to ESP)
+mp = [(my+118,"BCLK",C_I2S_M),(my+138,"WS",C_I2S_M),(my+158,"DOUT",C_I2S_M),
+      (my+178,"MCLK",C_I2S_M),(my+200,"SDA",C_SD),(my+220,"SCL",C_SD)]
 MPX = mx+mw
 for (y,lab,col) in mp:
     dot(MPX,y,col); text(MPX-12,y+4,lab,12,SUB,"end",mono=True)
-text(mx+16,my+mh-8,"L/R to GND (left ch)  -  SD: 100k to GND", 11, C_5V)
+text(mx+16,my+108,"ES8388/ES7210 (MCLK+I2C) or PCM1808", 10, SUB)
+text(mx+16,my+mh-8,"600Ω AGL isolation xfmr + 220-470Ω series", 10, C_5V)
 
-# ================= microSD (left, lower) =================
-sx,sy,sw_,sh = 70, 470, 300, 175
+# ================= TWO microSD (left, lower) =================
+sx,sy,sw_,sh = 70, 500, 300, 185
 rect(sx,sy,sw_,sh,PANEL,rx=12)
-text(sx+16,sy+30,"microSD CARD", 18, INK,weight="700")
-text(sx+16,sy+50,"SDMMC 1-bit  -  3.3 V  -  FAT32", 12, SUB)
-sdp=[(sy+82,"CLK",C_SD),(sy+105,"CMD",C_SD),(sy+128,"D0/DAT0",C_SD),
-     (sy+151,"VDD",C_3V3),(sy+170,"GND",C_GND)]
+text(sx+16,sy+28,"TWO microSD SLOTS", 17, INK,weight="700")
+text(sx+16,sy+48,"SDMMC 1-bit (shared)  -  3.3 V  -  FAT32", 11, SUB)
+text(sx+16,sy+66,"Slot 1 = CONFIG CARD   Slot 2 = DATA CARD", 11, C_5V)
+sdp=[(sy+96,"CLK",C_SD),(sy+116,"CMD",C_SD),(sy+136,"D0/DAT0",C_SD),
+     (sy+156,"CFG CD",C_SD),(sy+176,"DAT CD",C_SD)]
 SPX=sx+sw_
 for (y,lab,col) in sdp:
     dot(SPX,y,col); text(SPX-12,y+4,lab,12,SUB,"end",mono=True)
@@ -207,23 +217,24 @@ text(bx-8, by+8, "GPIO21/G14", 10, C_LED, "end")
 text(bx+30, by+38, "pulldown 10k to GND (off-state)", 9, SUB)
 
 # ================= SELECT SWITCH + PTT (bottom-left) =================
-swx,swy,sww,swh = 70, 700, 300, 150
+swx,swy,sww,swh = 70, 730, 300, 160
 rect(swx,swy,sww,swh,PANEL,rx=12)
 text(swx+16,swy+28,"DISCRETE INPUTS", 16, INK,weight="700")
 text(swx+16,swy+52,"SELECT  G10 to GND when IN", 12, C_CTRL,mono=True)
-text(swx+16,swy+74,"(active-low, internal pull-up)", 11, SUB)
-text(swx+16,swy+100,"PTT  G0/BOOT to GND", 12, C_CTRL,mono=True)
-text(swx+16,swy+120,"(hold to talk; active-low)", 11, SUB)
+text(swx+16,swy+72,"(active-low, internal pull-up)", 11, SUB)
+text(swx+16,swy+98,"PTT OVERRIDE  G0/BOOT to GND", 12, C_CTRL,mono=True)
+text(swx+16,swy+118,"(force-listen; VOX is primary)", 11, SUB)
+text(swx+16,swy+138,"VOX = AFE VAD on the panel feed", 11, C_5V)
 SWPX=swx+sww
-dot(SWPX,swy+52,C_CTRL); dot(SWPX,swy+100,C_CTRL)
+dot(SWPX,swy+52,C_CTRL); dot(SWPX,swy+98,C_CTRL)
 
 # ================= power rail box (bottom center) =================
 px,py,pw,ph = 470, 920, 700, 200
 rect(px,py,pw,ph,PANEL,rx=12)
 text(px+18,py+28,"POWER & GROUND", 16, INK,weight="700")
-pwr=[("3V3 (red)","ESP32-S3 3V3 -> mic VDD, microSD VDD", C_3V3),
+pwr=[("3V3 (red)","ESP32-S3 3V3 -> codec VDD, both microSD VDD", C_3V3),
      ("5V  (orange)","USB/VIN -> amp VIN (best output); lamp rail separate", C_5V),
-     ("GND (gray)","common ground - ALL devices + lamp driver source", C_GND)]
+     ("GND (gray)","common ground - all devices + lamp driver source", C_GND)]
 for i,(a,b,c) in enumerate(pwr):
     yy=py+58+i*34
     dot(px+28,yy-4,c,6); text(px+44,yy,a,13,INK,weight="700")
@@ -234,24 +245,24 @@ text(px+18,py+ph-14,"Budget: logic + peripherals < 250 mA; amp adds up to ~650 m
 # ===================================================================
 #                           WIRES
 # ===================================================================
-# Mic I2S to ESP left pins (G4/G5/G6)
-wire([(MPX,my+145),(560,my+145),(560,430),(LX,430)], C_I2S_M)  # SCK->BCLK G4
-wire([(MPX,my+165),(575,my+165),(575,465),(LX,465)], C_I2S_M)  # WS  G5
-wire([(MPX,my+185),(590,my+185),(590,500),(LX,500)], C_I2S_M)  # SD->DIN G6
-# Mic power
-wire([(MPX,my+95),(420,my+95),(420,300),(LX,300)], C_3V3)      # VDD->3V3
-wire([(MPX,my+120),(405,my+120),(405,370),(LX,370)], C_GND)    # GND
+# Audio codec I2S + I2C to ESP left pins (G4/G5/G6/G3 + G1/G2)
+wire([(MPX,my+118),(540,my+118),(540,425),(LX,425)], C_I2S_M)  # BCLK G4
+wire([(MPX,my+138),(528,my+138),(528,455),(LX,455)], C_I2S_M)  # WS   G5
+wire([(MPX,my+158),(516,my+158),(516,485),(LX,485)], C_I2S_M)  # DOUT G6
+wire([(MPX,my+178),(504,my+178),(504,515),(LX,515)], C_I2S_M)  # MCLK G3
+wire([(MPX,my+200),(492,my+200),(492,555),(LX,555)], C_SD)     # SDA  G1
+wire([(MPX,my+220),(480,my+220),(480,580),(LX,580)], C_SD)     # SCL  G2
 
-# microSD to ESP (G7/G9/G8)
-wire([(SPX,sy+82),(560,sy+82),(560,560),(LX,560)], C_SD)       # CLK G7
-wire([(SPX,sy+105),(545,sy+105),(545,595),(LX,595)], C_SD)     # CMD G9
-wire([(SPX,sy+128),(530,sy+128),(530,630),(LX,630)], C_SD)     # D0 G8
-wire([(SPX,sy+151),(420,sy+151),(420,300)], C_3V3)             # SD VDD -> 3V3 net
-wire([(SPX,sy+170),(405,sy+170),(405,370)], C_GND)             # SD GND
+# two microSD to ESP (shared G7/G9/G8 + card-detects G47/G38)
+wire([(SPX,sy+96),(560,sy+96),(560,615),(LX,615)], C_SD)       # CLK G7
+wire([(SPX,sy+116),(548,sy+116),(548,640),(LX,640)], C_SD)     # CMD G9
+wire([(SPX,sy+136),(536,sy+136),(536,665),(LX,665)], C_SD)     # D0 G8
+wire([(SPX,sy+156),(524,sy+156),(524,700),(LX,700)], C_SD)     # CFG CD G47
+wire([(SPX,sy+176),(512,sy+176),(512,725),(LX,725)], C_SD)     # DAT CD G38
 
-# Select + PTT to ESP
-wire([(SWPX,swy+52),(560,swy+52),(560,700),(LX,700)], C_CTRL)  # SELECT G10
-wire([(SWPX,swy+100),(545,swy+100),(545,735),(LX,735)], C_CTRL)# PTT G0
+# Select + PTT override to ESP
+wire([(SWPX,swy+52),(575,swy+52),(575,765),(LX,765)], C_CTRL)  # SELECT G10
+wire([(SWPX,swy+98),(560,swy+98),(560,790),(LX,790)], C_CTRL)  # PTT override G0
 
 # Amp I2S to ESP right pins (G15/G16/G17)
 wire([(RX,430),(1180,430),(1180,ay+128),(ax,ay+128)], C_I2S_S) # BCLK G15
@@ -276,8 +287,8 @@ text(RX+12, 690, "G48 = onboard RGB (status)", 11, SUB)
 
 # ---- legend / key ----
 kx,ky = 40, H-150
-keys=[("3.3 V",C_3V3),("5 V",C_5V),("GND",C_GND),("Mic I2S",C_I2S_M),
-      ("Speaker I2S",C_I2S_S),("microSD",C_SD),("Control in",C_CTRL),("Legend lamp",C_LED)]
+keys=[("3.3 V",C_3V3),("5 V",C_5V),("GND",C_GND),("Audio-in I2S",C_I2S_M),
+      ("Speaker I2S",C_I2S_S),("SD bus + I2C",C_SD),("Control in",C_CTRL),("Legend lamp",C_LED)]
 text(kx,ky-12,"NET KEY",13,INK,weight="700")
 for i,(lab,col) in enumerate(keys):
     yy=ky+ (i//4)*26

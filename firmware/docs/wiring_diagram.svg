@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1180" viewBox="0 0 1600 1180">
 <rect width="1600" height="1180" fill="#0e1320"/>
 <text x="40" y="52" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="30" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">CJ2 Voice Emergency Checklist — DIY Wiring Diagram</text>
-<text x="40" y="80" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="16" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">ESP32-S3 + INMP441 mic + MAX98357A amp + microSD + Applied Avionics split-legend annunciator switch</text>
+<text x="40" y="80" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="16" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">ESP32-S3 + audio-panel input (isolated I2S codec) + MAX98357A amp + two microSD (Config + Data) + Applied Avionics split-legend switch</text>
 <text x="40" y="102" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" fill="#ff9f43" text-anchor="start" font-weight="600" letter-spacing="0">Pin numbers match firmware/main/board_pins.h   •   DEMO / TRAINING ONLY — NOT FOR FLIGHT</text>
 <rect x="640" y="250" width="320" height="620" rx="16" fill="#2a3a5e" stroke="#4f6aa0" stroke-width="2.5"/>
 <text x="800.0" y="288" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="26" fill="#e8edf6" text-anchor="middle" font-weight="700" letter-spacing="0">ESP32-S3</text>
@@ -25,49 +25,65 @@
 <text x="628" y="339" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">5V</text>
 <circle cx="640" cy="370" r="4.5" fill="#5b6577"/>
 <text x="628" y="374" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">GND</text>
-<circle cx="640" cy="430" r="4.5" fill="#37d39a"/>
-<text x="628" y="434" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G4  BCLK</text>
-<circle cx="640" cy="465" r="4.5" fill="#37d39a"/>
-<text x="628" y="469" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G5  WS</text>
-<circle cx="640" cy="500" r="4.5" fill="#37d39a"/>
-<text x="628" y="504" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G6  DIN</text>
-<circle cx="640" cy="560" r="4.5" fill="#c98bff"/>
-<text x="628" y="564" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G7  CLK</text>
-<circle cx="640" cy="595" r="4.5" fill="#c98bff"/>
-<text x="628" y="599" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G9  CMD</text>
-<circle cx="640" cy="630" r="4.5" fill="#c98bff"/>
-<text x="628" y="634" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G8  D0</text>
-<circle cx="640" cy="700" r="4.5" fill="#ffd84d"/>
-<text x="628" y="704" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G10 SEL</text>
-<circle cx="640" cy="735" r="4.5" fill="#ffd84d"/>
-<text x="628" y="739" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G0  PTT</text>
-<rect x="70" y="250" width="300" height="190" rx="12" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
-<text x="86" y="280" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="18" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">INMP441 MIC</text>
-<text x="86" y="300" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">I2S MEMS  -  1.8 to 3.3 V  -  ~2.5 mA</text>
-<circle cx="370" cy="345" r="4.5" fill="#ff5d5d"/>
-<text x="358" y="349" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">VDD</text>
-<circle cx="370" cy="370" r="4.5" fill="#5b6577"/>
-<text x="358" y="374" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">GND</text>
-<circle cx="370" cy="395" r="4.5" fill="#37d39a"/>
-<text x="358" y="399" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">SCK</text>
-<circle cx="370" cy="415" r="4.5" fill="#37d39a"/>
-<text x="358" y="419" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">WS</text>
-<circle cx="370" cy="435" r="4.5" fill="#37d39a"/>
-<text x="358" y="439" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">SD</text>
-<text x="86" y="432" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">L/R to GND (left ch)  -  SD: 100k to GND</text>
-<rect x="70" y="470" width="300" height="175" rx="12" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
-<text x="86" y="500" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="18" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">microSD CARD</text>
-<text x="86" y="520" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">SDMMC 1-bit  -  3.3 V  -  FAT32</text>
-<circle cx="370" cy="552" r="4.5" fill="#c98bff"/>
-<text x="358" y="556" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">CLK</text>
-<circle cx="370" cy="575" r="4.5" fill="#c98bff"/>
-<text x="358" y="579" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">CMD</text>
-<circle cx="370" cy="598" r="4.5" fill="#c98bff"/>
-<text x="358" y="602" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">D0/DAT0</text>
-<circle cx="370" cy="621" r="4.5" fill="#ff5d5d"/>
-<text x="358" y="625" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">VDD</text>
-<circle cx="370" cy="640" r="4.5" fill="#5b6577"/>
-<text x="358" y="644" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">GND</text>
+<circle cx="640" cy="425" r="4.5" fill="#37d39a"/>
+<text x="628" y="429" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G4  AIN BCLK</text>
+<circle cx="640" cy="455" r="4.5" fill="#37d39a"/>
+<text x="628" y="459" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G5  AIN WS</text>
+<circle cx="640" cy="485" r="4.5" fill="#37d39a"/>
+<text x="628" y="489" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G6  AIN DIN</text>
+<circle cx="640" cy="515" r="4.5" fill="#37d39a"/>
+<text x="628" y="519" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G3  AIN MCLK</text>
+<circle cx="640" cy="555" r="4.5" fill="#c98bff"/>
+<text x="628" y="559" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G1  SDA</text>
+<circle cx="640" cy="580" r="4.5" fill="#c98bff"/>
+<text x="628" y="584" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G2  SCL</text>
+<circle cx="640" cy="615" r="4.5" fill="#c98bff"/>
+<text x="628" y="619" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G7  CLK</text>
+<circle cx="640" cy="640" r="4.5" fill="#c98bff"/>
+<text x="628" y="644" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G9  CMD</text>
+<circle cx="640" cy="665" r="4.5" fill="#c98bff"/>
+<text x="628" y="669" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G8  D0</text>
+<circle cx="640" cy="700" r="4.5" fill="#c98bff"/>
+<text x="628" y="704" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G47 CFG CD</text>
+<circle cx="640" cy="725" r="4.5" fill="#c98bff"/>
+<text x="628" y="729" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G38 DAT CD</text>
+<circle cx="640" cy="765" r="4.5" fill="#ffd84d"/>
+<text x="628" y="769" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G10 SEL</text>
+<circle cx="640" cy="790" r="4.5" fill="#ffd84d"/>
+<text x="628" y="794" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">G0  PTT</text>
+<rect x="70" y="230" width="300" height="240" rx="12" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
+<text x="86" y="258" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="17" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">AUDIO-PANEL INPUT</text>
+<text x="86" y="278" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Crew audio from the panel (RX-only)</text>
+<text x="86" y="296" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Isolation xfmr + I2S codec ADC</text>
+<text x="86" y="314" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">analog tap OR buffered digital - selectable</text>
+<circle cx="370" cy="348" r="4.5" fill="#37d39a"/>
+<text x="358" y="352" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">BCLK</text>
+<circle cx="370" cy="368" r="4.5" fill="#37d39a"/>
+<text x="358" y="372" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">WS</text>
+<circle cx="370" cy="388" r="4.5" fill="#37d39a"/>
+<text x="358" y="392" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">DOUT</text>
+<circle cx="370" cy="408" r="4.5" fill="#37d39a"/>
+<text x="358" y="412" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">MCLK</text>
+<circle cx="370" cy="430" r="4.5" fill="#c98bff"/>
+<text x="358" y="434" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">SDA</text>
+<circle cx="370" cy="450" r="4.5" fill="#c98bff"/>
+<text x="358" y="454" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">SCL</text>
+<text x="86" y="338" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">ES8388/ES7210 (MCLK+I2C) or PCM1808</text>
+<text x="86" y="462" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">600Ω AGL isolation xfmr + 220-470Ω series</text>
+<rect x="70" y="500" width="300" height="185" rx="12" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
+<text x="86" y="528" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="17" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">TWO microSD SLOTS</text>
+<text x="86" y="548" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">SDMMC 1-bit (shared)  -  3.3 V  -  FAT32</text>
+<text x="86" y="566" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">Slot 1 = CONFIG CARD   Slot 2 = DATA CARD</text>
+<circle cx="370" cy="596" r="4.5" fill="#c98bff"/>
+<text x="358" y="600" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">CLK</text>
+<circle cx="370" cy="616" r="4.5" fill="#c98bff"/>
+<text x="358" y="620" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">CMD</text>
+<circle cx="370" cy="636" r="4.5" fill="#c98bff"/>
+<text x="358" y="640" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">D0/DAT0</text>
+<circle cx="370" cy="656" r="4.5" fill="#c98bff"/>
+<text x="358" y="660" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">CFG CD</text>
+<circle cx="370" cy="676" r="4.5" fill="#c98bff"/>
+<text x="358" y="680" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">DAT CD</text>
 <rect x="1230" y="250" width="300" height="210" rx="12" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
 <text x="1246" y="280" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="18" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">MAX98357A AMP</text>
 <text x="1246" y="300" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Class-D  -  2.5 to 5.5 V  -  &lt;=650 mA pk</text>
@@ -131,38 +147,40 @@
 <text x="1255" y="934" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="9" fill="#9fb0cf" text-anchor="middle" font-weight="400" letter-spacing="0">1k</text>
 <text x="1196" y="928" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#ff7ac0" text-anchor="end" font-weight="400" letter-spacing="0">GPIO21/G14</text>
 <text x="1234" y="958" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="9" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">pulldown 10k to GND (off-state)</text>
-<rect x="70" y="700" width="300" height="150" rx="12" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
-<text x="86" y="728" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="16" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">DISCRETE INPUTS</text>
-<text x="86" y="752" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#ffd84d" text-anchor="start" font-weight="400" letter-spacing="0">SELECT  G10 to GND when IN</text>
-<text x="86" y="774" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">(active-low, internal pull-up)</text>
-<text x="86" y="800" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#ffd84d" text-anchor="start" font-weight="400" letter-spacing="0">PTT  G0/BOOT to GND</text>
-<text x="86" y="820" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">(hold to talk; active-low)</text>
-<circle cx="370" cy="752" r="4.5" fill="#ffd84d"/>
-<circle cx="370" cy="800" r="4.5" fill="#ffd84d"/>
+<rect x="70" y="730" width="300" height="160" rx="12" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
+<text x="86" y="758" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="16" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">DISCRETE INPUTS</text>
+<text x="86" y="782" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#ffd84d" text-anchor="start" font-weight="400" letter-spacing="0">SELECT  G10 to GND when IN</text>
+<text x="86" y="802" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">(active-low, internal pull-up)</text>
+<text x="86" y="828" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#ffd84d" text-anchor="start" font-weight="400" letter-spacing="0">PTT OVERRIDE  G0/BOOT to GND</text>
+<text x="86" y="848" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">(force-listen; VOX is primary)</text>
+<text x="86" y="868" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">VOX = AFE VAD on the panel feed</text>
+<circle cx="370" cy="782" r="4.5" fill="#ffd84d"/>
+<circle cx="370" cy="828" r="4.5" fill="#ffd84d"/>
 <rect x="470" y="920" width="700" height="200" rx="12" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
 <text x="488" y="948" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="16" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">POWER &amp; GROUND</text>
 <circle cx="498" cy="974" r="6" fill="#ff5d5d"/>
 <text x="514" y="978" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">3V3 (red)</text>
-<text x="680" y="978" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">ESP32-S3 3V3 -&gt; mic VDD, microSD VDD</text>
+<text x="680" y="978" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">ESP32-S3 3V3 -&gt; codec VDD, both microSD VDD</text>
 <circle cx="498" cy="1008" r="6" fill="#ff9f43"/>
 <text x="514" y="1012" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">5V  (orange)</text>
 <text x="680" y="1012" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">USB/VIN -&gt; amp VIN (best output); lamp rail separate</text>
 <circle cx="498" cy="1042" r="6" fill="#5b6577"/>
 <text x="514" y="1046" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">GND (gray)</text>
-<text x="680" y="1046" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">common ground - ALL devices + lamp driver source</text>
+<text x="680" y="1046" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">common ground - all devices + lamp driver source</text>
 <text x="488" y="1106" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">Budget: logic + peripherals &lt; 250 mA; amp adds up to ~650 mA peak at 5V/4ohm - size USB &gt;= 1 A.</text>
-<path d="M 370,395 L 560,395 L 560,430 L 640,430" fill="none" stroke="#37d39a" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,415 L 575,415 L 575,465 L 640,465" fill="none" stroke="#37d39a" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,435 L 590,435 L 590,500 L 640,500" fill="none" stroke="#37d39a" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,345 L 420,345 L 420,300 L 640,300" fill="none" stroke="#ff5d5d" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,370 L 405,370 L 405,370 L 640,370" fill="none" stroke="#5b6577" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,552 L 560,552 L 560,560 L 640,560" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,575 L 545,575 L 545,595 L 640,595" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,598 L 530,598 L 530,630 L 640,630" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,621 L 420,621 L 420,300" fill="none" stroke="#ff5d5d" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,640 L 405,640 L 405,370" fill="none" stroke="#5b6577" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,752 L 560,752 L 560,700 L 640,700" fill="none" stroke="#ffd84d" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 370,800 L 545,800 L 545,735 L 640,735" fill="none" stroke="#ffd84d" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,348 L 540,348 L 540,425 L 640,425" fill="none" stroke="#37d39a" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,368 L 528,368 L 528,455 L 640,455" fill="none" stroke="#37d39a" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,388 L 516,388 L 516,485 L 640,485" fill="none" stroke="#37d39a" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,408 L 504,408 L 504,515 L 640,515" fill="none" stroke="#37d39a" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,430 L 492,430 L 492,555 L 640,555" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,450 L 480,450 L 480,580 L 640,580" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,596 L 560,596 L 560,615 L 640,615" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,616 L 548,616 L 548,640 L 640,640" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,636 L 536,636 L 536,665 L 640,665" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,656 L 524,656 L 524,700 L 640,700" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,676 L 512,676 L 512,725 L 640,725" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,782 L 575,782 L 575,765 L 640,765" fill="none" stroke="#ffd84d" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 370,828 L 560,828 L 560,790 L 640,790" fill="none" stroke="#ffd84d" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M 960,430 L 1180,430 L 1180,378 L 1230,378" fill="none" stroke="#36b3ff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M 960,465 L 1165,465 L 1165,401 L 1230,401" fill="none" stroke="#36b3ff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M 960,500 L 1150,500 L 1150,424 L 1230,424" fill="none" stroke="#36b3ff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
@@ -182,11 +200,11 @@
 <line x1="340" y1="1030" x2="366" y2="1030" stroke="#5b6577" stroke-width="4" stroke-linecap="round"/>
 <text x="374" y="1034" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">GND</text>
 <line x1="490" y1="1030" x2="516" y2="1030" stroke="#37d39a" stroke-width="4" stroke-linecap="round"/>
-<text x="524" y="1034" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Mic I2S</text>
+<text x="524" y="1034" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Audio-in I2S</text>
 <line x1="40" y1="1056" x2="66" y2="1056" stroke="#36b3ff" stroke-width="4" stroke-linecap="round"/>
 <text x="74" y="1060" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Speaker I2S</text>
 <line x1="190" y1="1056" x2="216" y2="1056" stroke="#c98bff" stroke-width="4" stroke-linecap="round"/>
-<text x="224" y="1060" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">microSD</text>
+<text x="224" y="1060" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">SD bus + I2C</text>
 <line x1="340" y1="1056" x2="366" y2="1056" stroke="#ffd84d" stroke-width="4" stroke-linecap="round"/>
 <text x="374" y="1060" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Control in</text>
 <line x1="490" y1="1056" x2="516" y2="1056" stroke="#ff7ac0" stroke-width="4" stroke-linecap="round"/>
