@@ -18,6 +18,10 @@ healthy.
 
 > ⚠️ **DEMO / TRAINING USE ONLY — NOT FOR ACTUAL FLIGHT OPERATIONS.**
 
+> 📐 **Wiring diagram & full electrical data:** see [`docs/wiring_diagram.png`](docs/wiring_diagram.png)
+> and [`docs/TECH_DATA.md`](docs/TECH_DATA.md) (master pin map, per-device wiring, power
+> budget, BOM, and the legend lamp-driver circuit).
+
 ---
 
 ## 1. Hardware you need
