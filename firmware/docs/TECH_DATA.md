@@ -253,7 +253,48 @@ items above; use its BSP pin map and the ES8311 codec init.
 
 ---
 
-## 9. Source references
+## 9. Processor selection
+
+### 9.1 What this application actually needs
+
+This is **not** a general dictation device. The workload is narrow and well bounded:
+
+| Requirement | Implication |
+|---|---|
+| **Small, fixed vocabulary** | ~13 checklist triggers + a handful of universal advance words = well under the ~200-command MultiNet cap. No large-vocabulary STT needed. |
+| **Offline, no connectivity** | A safety/training device should not depend on WiFi, BT, or cloud. Connectivity is a liability, not a feature. |
+| **Deterministic + safe** | Must revert to a safe (unopened) state on any fault; single-chip, well-understood toolchain reduces failure surface. |
+| **Dark-cockpit annunciation** | A few GPIO + I2S in/out + SD. No high-end peripherals required. |
+| **Low cost, mature tooling** | Demo/training hardware; reproducible by the user with off-the-shelf parts. |
+
+The net: command-recognition on a fixed grammar, not open-ended transcription. That keeps an MCU-class part firmly in scope and makes a Linux SBC overkill.
+
+### 9.2 Recommendation
+
+**Keep the ESP32-S3 as the baseline; consider the ESP32-P4 only if you want more headroom.** Espressif's ESP-SR (v2.1+) explicitly supports **S3 and P4** for English MultiNet command recognition, running wake word + AEC/NS + intent on a single chip. The classic ESP32 is no longer supported by the current speech algorithms, so it should be avoided.
+
+- **ESP32-S3 (recommended baseline):** Xtensa LX7 dual-core @240 MHz with AI vector instructions, 512 KB SRAM, WiFi+BLE, ~$8–15. Rated the best AI/voice part in the ESP line, most mature tooling, runs `mn6_en`/`mn7_en`. The web/firmware, wiring diagram, and BOM are already built around it. ([Espressif ESP-SR](https://docs.espressif.com/projects/esp-sr/en/latest/esp32s3/index.html), [espboards.dev](https://www.espboards.dev/blog/esp32-soc-options/))
+- **ESP32-P4 (upgrade path):** dual-core RISC-V up to **400 MHz** + AI instructions + a 40 MHz low-power core, 768 KB SRAM, ~2.5× the compute of the S3, runs `mn7_en`. **No WiFi/BT** — which for a safety device is arguably a *plus* (removes an attack/distraction surface). The trade-off is needing a companion radio if you ever wanted connectivity, and slightly less mature tooling. Good choice if you later add a display or more audio processing. ([Espressif ESP32-P4](https://www.espressif.com/en/products/socs/esp32-p4), [Elecrow P4 vs S3](https://www.elecrow.com/blog/who-is-the-true-performance-king-esp32-p4-vs-esp32-s3.html))
+
+For this fixed-vocabulary workload the S3 has ample margin, so the P4 is a "want more headroom / future display" upgrade rather than a necessity.
+
+### 9.3 Alternatives considered (and why not, for this build)
+
+| Option | What it is | Verdict for this app |
+|---|---|---|
+| **Syntiant NDP120** (Arduino Nicla Voice) | Always-on Neural Decision Processor, ultra-low-power, embedded Cortex-M0 | Excellent for battery always-on wake-word; overkill/awkward here since we have panel power and need full command grammar + audio playback + SD. ([Syntiant](https://www.syntiant.com/ndp120)) |
+| **Picovoice Porcupine + Rhino** | Wake-word + speech-to-intent, offline on Arm Cortex-M4 | Technically a clean fit for fixed grammar, but requires a per-deployment **AccessKey** (license dependency) — undesirable for a self-contained demo. ([Picovoice](https://picovoice.ai/blog/keyword-spotting-on-microcontrollers/)) |
+| **Fluent.ai** | End-to-end speech-to-intent on Cortex-M4 @100 MHz, multilingual | Good for productized multilingual intent; commercial licensing, less open tooling than ESP-SR. |
+| **NXP i.MX RT600** | Cortex-M33 @300 MHz + Cadence HiFi4 DSP @600 MHz, 4.5 MB SRAM | Strong audio DSP, but more complex board + toolchain than needed for a fixed 13-checklist grammar. |
+| **Raspberry Pi** (whisper.cpp / Vosk) | Full offline STT on Linux | Real large-vocabulary transcription, but Linux boot, higher power/cost, non-deterministic boot — overkill and less robust for a fixed-grammar safety device. |
+
+**Bottom line:** the ESP32-S3 remains the right baseline; the ESP32-P4 is the only "strictly better" silicon in the same family and is worth it only if you want extra compute or a display. The dedicated voice chips (Syntiant, Picovoice, Fluent.ai) and the Pi solve problems this app doesn't have.
+
+> *DEMO/TRAINING ONLY — NOT FOR ACTUAL FLIGHT OPERATIONS.*
+
+---
+
+## 10. Source references
 
 - INMP441 microphone datasheet — [Farnell/InvenSense](https://www.farnell.com/datasheets/1824785.pdf)
 - MAX98357A amplifier datasheet — [Analog Devices](https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf); [Adafruit guide](https://cdn-learn.adafruit.com/downloads/pdf/adafruit-max98357-i2s-class-d-mono-amp.pdf)
