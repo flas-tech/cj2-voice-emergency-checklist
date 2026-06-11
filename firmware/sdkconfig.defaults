@@ -1,0 +1,26 @@
+# ---- Target ----
+CONFIG_IDF_TARGET="esp32s3"
+
+# ---- Flash / PSRAM (esp-sr needs PSRAM) ----
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="8MB"
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_SPIRAM_USE_MALLOC=y
+
+# ---- Custom partition table with model + storage partitions ----
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# ---- CPU ----
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_FREERTOS_HZ=1000
+
+# ---- esp-sr model selection ----
+# WakeNet wake word "Hi ESP" + English MultiNet (grapheme, mn6_en recommended).
+CONFIG_SR_WN_WN9_HIESP=y
+CONFIG_SR_MN_ENGLISH=y
+CONFIG_SR_MN_EN_MULTINET6_QUANT=y
+# Models are stored in the 'model' partition.
+CONFIG_MODEL_IN_SPIFFS=y

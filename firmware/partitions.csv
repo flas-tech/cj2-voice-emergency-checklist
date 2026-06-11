@@ -1,0 +1,7 @@
+# Name,   Type, SubType, Offset,  Size
+# Requires a >=8 MB flash module (ESP32-S3-WROOM-1 N8/N16 or Korvo-2).
+nvs,       data, nvs,     0x9000,  0x6000
+phy_init,  data, phy,     0xf000,  0x1000
+factory,   app,  factory, 0x10000, 0x300000
+model,     data, spiffs,  ,        0x500000
+storage,   data, spiffs,  ,        0x200000

@@ -23,6 +23,12 @@ Opening the raw `file://` will load the UI but the browser will block microphone
 
 ---
 
+## ESP32-S3 firmware
+
+An offline, on-device version that runs on real hardware (ESP32-S3 + ESP-SR
+WakeNet/MultiNet) lives in **[`firmware/`](firmware/)** — including all 12 checklists,
+the full speech pipeline, a hardware shopping list, wiring, and flashing instructions.
+
 ## How it works
 
 1. **Hold the PUSH-TO-TALK button** (or hold the **Spacebar**) and say the emergency name,
