@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1180" viewBox="0 0 1600 1180">
 <rect width="1600" height="1180" fill="#0e1320"/>
 <text x="40" y="52" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="30" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">CJ2 Voice Emergency Checklist — DIY Wiring Diagram</text>
-<text x="40" y="80" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="16" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">ESP32-S3 + audio-panel input (isolated I2S codec) + MAX98357A amp + two microSD (Config + Data) + Applied Avionics split-legend switch</text>
+<text x="40" y="80" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="16" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">ESP32-S3 + audio-panel input (isolated I2S codec, RX-only) + audio-panel output (isolated TX to COM3 channel) + two microSD (Config + Data) + Applied Avionics split-legend switch</text>
 <text x="40" y="102" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" fill="#ff9f43" text-anchor="start" font-weight="600" letter-spacing="0">Pin numbers match firmware/main/board_pins.h   •   DEMO / TRAINING ONLY — NOT FOR FLIGHT</text>
 <rect x="640" y="250" width="320" height="620" rx="16" fill="#2a3a5e" stroke="#4f6aa0" stroke-width="2.5"/>
 <text x="800.0" y="288" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="26" fill="#e8edf6" text-anchor="middle" font-weight="700" letter-spacing="0">ESP32-S3</text>
 <text x="800.0" y="312" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="14" fill="#9fb0cf" text-anchor="middle" font-weight="400" letter-spacing="0">DevKitC-1  N16R8</text>
 <text x="800.0" y="332" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#ff9f43" text-anchor="middle" font-weight="400" letter-spacing="0">(PSRAM required for ESP-SR)</text>
 <circle cx="960" cy="430" r="4.5" fill="#36b3ff"/>
-<text x="970" y="434" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">G15 BCLK</text>
+<text x="970" y="434" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">G15 AOUT BCLK</text>
 <circle cx="960" cy="465" r="4.5" fill="#36b3ff"/>
-<text x="970" y="469" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">G16 LRC</text>
+<text x="970" y="469" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">G16 AOUT LRC</text>
 <circle cx="960" cy="500" r="4.5" fill="#36b3ff"/>
-<text x="970" y="504" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">G17 DIN</text>
+<text x="970" y="504" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">G17 AOUT DOUT</text>
 <circle cx="960" cy="600" r="4.5" fill="#ff7ac0"/>
 <text x="970" y="604" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">G21 OFF</text>
 <circle cx="960" cy="635" r="4.5" fill="#ff7ac0"/>
@@ -84,24 +84,24 @@
 <text x="358" y="660" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">CFG CD</text>
 <circle cx="370" cy="676" r="4.5" fill="#c98bff"/>
 <text x="358" y="680" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="end" font-weight="400" letter-spacing="0">DAT CD</text>
-<rect x="1230" y="250" width="300" height="210" rx="12" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
-<text x="1246" y="280" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="18" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">MAX98357A AMP</text>
-<text x="1246" y="300" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Class-D  -  2.5 to 5.5 V  -  &lt;=650 mA pk</text>
-<circle cx="1230" cy="332" r="4.5" fill="#ff9f43"/>
-<text x="1242" y="336" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">VIN</text>
-<circle cx="1230" cy="355" r="4.5" fill="#5b6577"/>
-<text x="1242" y="359" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">GND</text>
-<circle cx="1230" cy="378" r="4.5" fill="#36b3ff"/>
-<text x="1242" y="382" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">BCLK</text>
-<circle cx="1230" cy="401" r="4.5" fill="#36b3ff"/>
-<text x="1242" y="405" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">LRC</text>
-<circle cx="1230" cy="424" r="4.5" fill="#36b3ff"/>
-<text x="1242" y="428" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">DIN</text>
-<text x="1246" y="430" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">SD pin: float = mono</text>
-<text x="1246" y="448" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">GAIN: NC = 9 dB (default)</text>
-<path d="M 1540,386 h14 l18,-18 v60 l-18,-18 h-14 z" fill="#232d47" stroke="#3a4663" stroke-width="1.5"/>
-<text x="1546" y="444" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="middle" font-weight="400" letter-spacing="0">4–8 Ω</text>
-<path d="M 1530,332 L 1536,332 L 1536,370 L 1546,370" fill="none" stroke="#ff9f43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1120" y="250" width="360" height="250" rx="12" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
+<text x="1136" y="278" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="17" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">AUDIO-PANEL OUTPUT (COM3)</text>
+<text x="1136" y="296" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">ISOLATED TX to dedicated aux channel</text>
+<text x="1136" y="314" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">I2S DAC + isolation xfmr + line-level out</text>
+<text x="1136" y="332" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">Cannot key/jam/back-feed required COM channels</text>
+<text x="1136" y="350" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Separate connector from AUDIO IN (RX ONLY)</text>
+<circle cx="1120" cy="374" r="4.5" fill="#36b3ff"/>
+<text x="1132" y="378" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">BCLK</text>
+<circle cx="1120" cy="398" r="4.5" fill="#36b3ff"/>
+<text x="1132" y="402" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">LRC</text>
+<circle cx="1120" cy="422" r="4.5" fill="#36b3ff"/>
+<text x="1132" y="426" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">DIN</text>
+<text x="1136" y="450" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">Line-level out -&gt; 600 ohm isolation xfmr</text>
+<text x="1136" y="466" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">-&gt; COM3-style audio-panel input</text>
+<text x="1136" y="488" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">[bench: MAX98357A substituted on GPIO15/16/17 only]</text>
+<path d="M 1490,385 l26,0 m-10,-10 l10,10 l-10,10" fill="none" stroke="#36b3ff" stroke-width="2.5" stroke-linecap="round"/>
+<text x="1496" y="378" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">to audio</text>
+<text x="1496" y="412" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#36b3ff" text-anchor="start" font-weight="400" letter-spacing="0">panel COM3</text>
 <rect x="1150" y="540" width="400" height="470" rx="14" fill="#1a2236" stroke="#3a4663" stroke-width="1.5"/>
 <text x="1168" y="570" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="16" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">APPLIED AVIONICS</text>
 <text x="1168" y="590" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">VIVISUN / Korry split-legend switch</text>
@@ -163,11 +163,11 @@
 <text x="680" y="978" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">ESP32-S3 3V3 -&gt; codec VDD, both microSD VDD</text>
 <circle cx="498" cy="1008" r="6" fill="#ff9f43"/>
 <text x="514" y="1012" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">5V  (orange)</text>
-<text x="680" y="1012" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">USB/VIN -&gt; amp VIN (best output); lamp rail separate</text>
+<text x="680" y="1012" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">USB/VIN -&gt; output line driver (low-current); lamp rail separate</text>
 <circle cx="498" cy="1042" r="6" fill="#5b6577"/>
 <text x="514" y="1046" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">GND (gray)</text>
 <text x="680" y="1046" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">common ground - all devices + lamp driver source</text>
-<text x="488" y="1106" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">Budget: logic + peripherals &lt; 250 mA; amp adds up to ~650 mA peak at 5V/4ohm - size USB &gt;= 1 A.</text>
+<text x="488" y="1106" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#ff9f43" text-anchor="start" font-weight="400" letter-spacing="0">Budget: logic + peripherals &lt; 250 mA; output line driver is low-current (~50 mA max); total USB &gt;= 1 A (speaker amp removed).</text>
 <path d="M 370,348 L 540,348 L 540,425 L 640,425" fill="none" stroke="#37d39a" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M 370,368 L 528,368 L 528,455 L 640,455" fill="none" stroke="#37d39a" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M 370,388 L 516,388 L 516,485 L 640,485" fill="none" stroke="#37d39a" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
@@ -181,16 +181,13 @@
 <path d="M 370,676 L 512,676 L 512,725 L 640,725" fill="none" stroke="#c98bff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M 370,782 L 575,782 L 575,765 L 640,765" fill="none" stroke="#ffd84d" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M 370,828 L 560,828 L 560,790 L 640,790" fill="none" stroke="#ffd84d" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 960,430 L 1180,430 L 1180,378 L 1230,378" fill="none" stroke="#36b3ff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 960,465 L 1165,465 L 1165,401 L 1230,401" fill="none" stroke="#36b3ff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 960,500 L 1150,500 L 1150,424 L 1230,424" fill="none" stroke="#36b3ff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 1230,332 L 1190,332 L 1190,335 L 960,335" fill="none" stroke="#ff9f43" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 960,335 L 1200,335 L 1200,332 L 1230,332" fill="none" stroke="#ff9f43" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 960,370 L 1215,370 L 1215,355 L 1230,355" fill="none" stroke="#5b6577" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 960,430 L 1140,430 L 1140,374 L 1120,374" fill="none" stroke="#36b3ff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 960,465 L 1128,465 L 1128,398 L 1120,398" fill="none" stroke="#36b3ff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 960,500 L 1116,500 L 1116,422 L 1120,422" fill="none" stroke="#36b3ff" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M 960,600 L 1080,600 L 1080,930 L 1174,930" fill="none" stroke="#ff7ac0" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M 960,635 L 1095,635 L 1095,948 L 1192,948" fill="none" stroke="#ff7ac0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 5"/>
 <text x="1072" y="592" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#ff7ac0" text-anchor="end" font-weight="400" letter-spacing="0">G21 -&gt; OFF half</text>
-<text x="1108" y="760" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#ff7ac0" text-anchor="start" font-weight="400" letter-spacing="0">G14 -&gt; FAULT half (2nd driver)</text>
+<text x="1072" y="628" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="10" fill="#ff7ac0" text-anchor="end" font-weight="400" letter-spacing="0">G14 -&gt; FAULT half</text>
 <text x="972" y="690" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="11" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">G48 = onboard RGB (status)</text>
 <text x="40" y="1018" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" fill="#e8edf6" text-anchor="start" font-weight="700" letter-spacing="0">NET KEY</text>
 <line x1="40" y1="1030" x2="66" y2="1030" stroke="#ff5d5d" stroke-width="4" stroke-linecap="round"/>
@@ -200,9 +197,9 @@
 <line x1="340" y1="1030" x2="366" y2="1030" stroke="#5b6577" stroke-width="4" stroke-linecap="round"/>
 <text x="374" y="1034" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">GND</text>
 <line x1="490" y1="1030" x2="516" y2="1030" stroke="#37d39a" stroke-width="4" stroke-linecap="round"/>
-<text x="524" y="1034" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Audio-in I2S</text>
+<text x="524" y="1034" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Audio-in I2S (RX)</text>
 <line x1="40" y1="1056" x2="66" y2="1056" stroke="#36b3ff" stroke-width="4" stroke-linecap="round"/>
-<text x="74" y="1060" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Speaker I2S</text>
+<text x="74" y="1060" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">Audio-out I2S (COM3 TX)</text>
 <line x1="190" y1="1056" x2="216" y2="1056" stroke="#c98bff" stroke-width="4" stroke-linecap="round"/>
 <text x="224" y="1060" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" fill="#9fb0cf" text-anchor="start" font-weight="400" letter-spacing="0">SD bus + I2C</text>
 <line x1="340" y1="1056" x2="366" y2="1056" stroke="#ffd84d" stroke-width="4" stroke-linecap="round"/>

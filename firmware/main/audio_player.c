@@ -51,9 +51,9 @@ esp_err_t audio_player_init(void)
                         I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO),
         .gpio_cfg = {
             .mclk = I2S_GPIO_UNUSED,
-            .bclk = SPK_BCLK_GPIO,
-            .ws   = SPK_LRCLK_GPIO,
-            .dout = SPK_DOUT_GPIO,
+            .bclk = AOUT_BCLK_GPIO,
+            .ws   = AOUT_LRCLK_GPIO,
+            .dout = AOUT_DOUT_GPIO,
             .din  = I2S_GPIO_UNUSED,
             .invert_flags = { .mclk_inv=false, .bclk_inv=false, .ws_inv=false },
         },
@@ -61,8 +61,8 @@ esp_err_t audio_player_init(void)
     ESP_ERROR_CHECK(i2s_channel_init_std_mode(tx_chan, &std_cfg));
     ESP_ERROR_CHECK(i2s_channel_enable(tx_chan));
     cur_rate = 16000;
-    ESP_LOGI(TAG, "I2S speaker init on BCLK=%d WS=%d DOUT=%d",
-             SPK_BCLK_GPIO, SPK_LRCLK_GPIO, SPK_DOUT_GPIO);
+    ESP_LOGI(TAG, "I2S audio-out (COM3) init on BCLK=%d WS=%d DOUT=%d",
+             AOUT_BCLK_GPIO, AOUT_LRCLK_GPIO, AOUT_DOUT_GPIO);
     return ESP_OK;
 }
 

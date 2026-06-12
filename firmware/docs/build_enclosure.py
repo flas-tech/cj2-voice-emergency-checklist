@@ -169,30 +169,36 @@ story.append(Paragraph(
 arch = [
     ["Piece", "Contents", "Where it lives", "Why"],
     ["<b>A. Panel bezel</b><br/>(pilot-facing)",
-     "Split-legend annunciator switch, speaker + grille, optional PTT button",
+     "Split-legend annunciator switch, PTT button (optional)",
      "Front instrument panel / pedestal, on the <b>DZUS rail</b>",
      "Must be seen and reached by the crew; the dark-cockpit annunciator must sit in the pilot's normal scan"],
     ["<b>B. Remote processor box</b><br/>(blind)",
-     "ESP32-S3 board, INMP441 mic, MAX98357A amp, microSD, lamp-driver board, power conditioning",
+     "ESP32-S3 board, isolated audio-input stage (isolation transformer + I2S codec ADC / analog tap), "
+     "isolated audio-output stage (line driver/DAC + output isolation transformer \u2192 COM3-style channel), "
+     "two microSD breakouts (Config Card slot 1 + Data Card slot 2), lamp-driver board, power conditioning. "
+     "(INMP441 mic + MAX98357A speaker-amp: bench-test only, not installed.)",
      "Avionics bay / behind-panel shelf, blind-mounted",
-     "Keeps heat, the SD slot, and wiring out of the panel; only the bezel needs panel real estate"],
+     "Keeps heat, the SD slots, and wiring out of the panel; only the bezel needs panel real estate"],
 ]
 story.append(make_table(arch, [1.25*inch, 1.95*inch, 1.6*inch, 1.9*inch]))
 story.append(Spacer(1, 8))
 story.append(Paragraph(
     "A <b>single all-in-one panel box</b> is acceptable for a pure bench demo, but the two-piece "
     "split is the recommended target: it mirrors how real remote-mount avionics are installed and "
-    "keeps the microphone away from cooling-fan and avionics noise.", body))
+    "routes audio-panel signals (receive tap + COM3 output) cleanly from the avionics bay.", body))
 story.append(Spacer(1, 4))
 story.append(mono_light(
     "   PANEL (crew side)                       AVIONICS BAY (blind)\n"
-    " +----------------------+               +--------------------------+\n"
-    " |  [VOICE CHKLST OFF]  |  bezel harness|   ESP32-S3 + amp + mic   |\n"
-    " |  [VOICE CHKLST FALT] |<=============> |   microSD (front access) |\n"
-    " |   (.) speaker grille |  (D-sub or    |   lamp-driver board      |\n"
-    " |    o  PTT (optional) |   circular)   |   power conditioning     |\n"
-    " +----------------------+               +--------------------------+\n"
-    "        Piece A                                 Piece B"))
+    " +----------------------+               +------------------------------+\n"
+    " |  [VOICE CHKLST OFF]  |  bezel harness|  ESP32-S3                    |\n"
+    " |  [VOICE CHKLST FALT] |<=============>|  isolated audio-IN stage     |\n"
+    " |    o  PTT (optional) |  (D-sub or    |  isolated audio-OUT stage    |\n"
+    " +----------------------+   circular)   |  Config Card (front access)  |\n"
+    "        Piece A                         |  Data Card  (front access)   |\n"
+    "                                        |  lamp-driver board           |\n"
+    "                                        |  power conditioning          |\n"
+    "                                        +------------------------------+\n"
+    "                                                Piece B"))
 
 # ---- 2. Piece A ----
 story.append(PageBreak())
@@ -204,8 +210,8 @@ story.append(bullets([
     "Fastener pitch (hole-to-hole) = <b>3/8 in (9.525 mm)</b>; fastener clearance hole "
     "<b>0.255 in (6.48 mm)</b>.",
     "Bezel <b>height must be a whole multiple of 3/8 in</b> (the \u201cDZUS rhythm\u201d). Target a "
-    "<b>3-unit panel = 1.125 in (28.575 mm)</b> tall, or <b>4-unit = 1.5 in (38.1 mm)</b> if the "
-    "speaker grille needs more room.",
+    "<b>3-unit panel = 1.125 in (28.575 mm)</b> tall (switch + PTT fit comfortably; no speaker/grille cutout required). "
+    "4-unit = 1.5 in (38.1 mm) if additional connector cutouts are needed.",
     "Standard pedestal panel <b>width = 5.75 in (146.05 mm)</b> nominal aluminum "
     "(&asymp; 144.45 mm usable face). Use this width so the bezel drops into a standard slot.",
     "Backplate: <b>1/16 in (1.6 mm) aluminum</b> (6061-T6) per DZUS convention; first / last "
@@ -224,10 +230,11 @@ story.append(bullets([
     "Legend engraving: <b>top half = </b><font name='Mono' size='8.5'>VOICE CHKLST OFF</font><b> (white)</b>; "
     "<b>bottom half = </b><font name='Mono' size='8.5'>VOICE CHKLST FAULT</font><b> (amber)</b>. "
     "Legend orientation must read upright when panel-installed.",
-    "<b>Speaker grille</b> (see &sect;4) \u2014 open area &ge; 40% over the speaker cone; offset from the "
-    "switch so a finger on the switch never covers the grille.",
     "<b>PTT button (optional)</b> \u2014 momentary, guarded or recessed so it is not bumped. If the "
     "aircraft already has a yoke / PTT tie-in, omit this and route PTT through the harness.",
+    "<b>No speaker grille.</b> The installed configuration has no onboard speaker; checklist audio "
+    "is delivered in-headset via the isolated COM3-style output channel. No acoustic aperture is "
+    "required on the bezel for speaker output.",
 ]))
 
 story.append(Paragraph("2.3 &nbsp; Bezel material &amp; finish", h3))
@@ -247,28 +254,42 @@ story.append(Paragraph("3 &nbsp; Piece B &mdash; Remote Processor Box", h1))
 story.append(Paragraph("3.1 &nbsp; Size &amp; internal layout", h3))
 story.append(bullets([
     "Size the internal volume around the <b>largest board path = the ESP32-S3 DevKitC-1 "
-    "(&asymp; 70 &times; 26 mm)</b> plus the MAX98357A breakout, mic, microSD breakout, and the "
-    "2-channel lamp-driver board. Practical outer envelope: <b>&asymp; 110 &times; 80 &times; 45 mm "
-    "(L &times; W &times; H)</b>. Confirm against the actual stacked board set.",
+    "(&asymp; 70 &times; 26 mm)</b> plus the isolated audio-output stage board (line driver/DAC + "
+    "output isolation transformer), the audio-input stage board (isolation transformer + codec), "
+    "two microSD breakouts (Config Card slot 1 + Data Card slot 2), and the 2-channel lamp-driver board. "
+    "Practical outer envelope: <b>&asymp; 110 &times; 80 &times; 45 mm (L &times; W &times; H)</b>. "
+    "Confirm against the actual stacked board set.",
     "Use <b>internal standoffs / PCB rails</b> (M2.5 brass inserts) so boards are screwed down, not "
     "floating \u2014 important for the vibration environment (&sect;6).",
-    "Keep the <b>INMP441 mic away from the amplifier and any fan</b>. If the mic lives in this box, "
-    "add an acoustic port (small grille or 4&ndash;6 mm hole with mesh) on a quiet face. For best "
-    "recognition the mic can instead live in the bezel near the crew \u2014 engineer's choice \u2014 but "
-    "keep the I2S run short (&lt; 150 mm).",
+    "The installed audio input is the <b>audio-panel tap</b> (isolated analog line tap or buffered "
+    "digital I2S), not an onboard microphone. No acoustic port is needed on the remote box for "
+    "the installed configuration. The audio-panel tap takes already-mixed crew audio from the panel, "
+    "eliminating sensitivity to cockpit fan or avionics noise entirely.",
+    "<b>No onboard speaker or speaker grille</b> in the installed build. The output goes out through "
+    "the isolated line-level stage to the panel's COM3-style channel; the crew hears checklist audio "
+    "in-headset, not from a speaker in the box.",
 ]))
 
 story.append(Paragraph("3.2 &nbsp; Access &amp; connectors", h3))
 story.append(bullets([
-    "<b>microSD access:</b> a slot on a removable face or an externally-accessible push-push SD "
-    "carrier, so the card can be swapped (to reconfigure the aircraft) <b>without opening the sealed "
-    "box</b>. Label it <font name='Mono' size='8.5'>CONFIG CARD &mdash; FAT32</font>.",
+    "<b>microSD access \u2014 two front-accessible slots:</b> both the <b>Config Card (slot 1)</b> and "
+    "<b>Data Card (slot 2)</b> must be externally accessible (push-push carriers or slots on a "
+    "removable face) so either card can be swapped without opening the sealed box. "
+    "Label: <font name='Mono' size='8.5'>CONFIG CARD (SLOT 1) &mdash; FAT32</font> and "
+    "<font name='Mono' size='8.5'>DATA CARD (SLOT 2) &mdash; FAT32</font>.",
     "<b>USB-C service port:</b> a covered / recessed USB-C pass-through for flashing and power on the "
     "bench. Add a silicone plug or hinged cover; it is not for in-service use.",
-    "<b>Main connector:</b> one circular bayonet connector (e.g. a small MIL-style / M12) OR a 9-pin "
-    "D-sub carrying: bezel switch SELECT, the two legend-lamp drives, PTT, speaker +/&minus;, and "
-    "power / ground. Pin-out to be finalized from <font name='Mono' size='8.5'>board_pins.h</font>. "
+    "<b>Main connector (bezel harness):</b> one circular bayonet connector (e.g. a small MIL-style / M12) "
+    "OR a D-sub carrying: bezel switch SELECT, the two legend-lamp drives, PTT, and power / ground. "
+    "Pin-out to be finalized from <font name='Mono' size='8.5'>board_pins.h</font>. "
     "Use a keyed, positive-latching connector \u2014 no loose flying leads.",
+    "<b>AUDIO IN connector (isolated input tap):</b> a separate panel connector / feedthrough for the "
+    "galvanically-isolated receive-only audio-panel INPUT tap line (600 \u2126 line level or buffered I2S). "
+    "Label: <font name='Mono' size='8.5'>AUDIO IN &mdash; PANEL TAP (ISOLATED)</font>.",
+    "<b>AUDIO OUT connector (isolated COM3 output):</b> a separate panel connector / feedthrough for "
+    "the galvanically-isolated line-level OUTPUT to the dedicated COM3-style audio-panel channel. "
+    "Label: <font name='Mono' size='8.5'>AUDIO OUT &mdash; COM3 ISOLATED</font>. "
+    "Separate connector from the input tap; keep the TX and RX paths on distinct connectors.",
     "<b>Power:</b> accept bench supply (USB 5 V &ge; 1 A). If a 28 VDC aircraft-bus mock-up is wanted, "
     "include a <b>28 V &rarr; 5 V DC-DC</b> (&ge; 2 A) inside the box with input transient protection "
     "(TVS + fuse) \u2014 but mark clearly that this is a demo regulator, not DO-160 qualified.",
@@ -283,14 +304,26 @@ story.append(bullets([
     "Single-point <b>chassis ground stud</b> bonded to the connector shell and the ESP32 ground.",
 ]))
 
-# ---- 4. Audio ----
-story.append(Paragraph("4 &nbsp; Audio (Speaker) Details", h1))
+# ---- 4. Audio (panel connectors) ----
+story.append(Paragraph("4 &nbsp; Audio Interface &mdash; Isolated Panel Connectors", h1))
+story.append(Paragraph(
+    "The installed configuration has <b>no onboard speaker and no speaker grille</b>. "
+    "Checklist audio is delivered in-headset via two electrically separate, galvanically-isolated "
+    "audio-panel connections on two dedicated external connectors (see \u00a73.2):", body))
 story.append(bullets([
-    f"Speaker: <b>4&ndash;8 {OHM}, &ge; 2 W</b>, sealed-back or with a small rear volume "
-    f"(5&ndash;15 cm&sup3;) to avoid a tinny sound; the MAX98357A peaks ~650 mA at 5 V / 4 {OHM}.",
-    "Grille: perforated metal or molded slots, <b>&ge; 40% open area</b>, with a thin acoustic mesh "
-    "behind it for dust. Keep the speaker front-firing toward the crew.",
-    "Gasket the speaker to the bezel to prevent buzz at volume.",
+    "<b>AUDIO IN \u2014 PANEL TAP (ISOLATED):</b> galvanically-isolated receive-only tap of the aircraft "
+    "audio panel (analog isolated line tap via 600 \u2126:600 \u2126 aviation isolation transformer, e.g. "
+    "Allen Avionics AGL series, OR buffered receive-only digital I2S, selectable per install). "
+    "No signal path back toward the panel from this connector. "
+    "Use a shielded audio cable; keep the run to the panel short and away from ignition wiring.",
+    "<b>AUDIO OUT \u2014 COM3 ISOLATED:</b> galvanically-isolated line-level TX to the dedicated "
+    f"COM3-style audio-panel input channel. Output impedance: 600 {OHM} nominal (per panel COM3 input spec). "
+    "The isolation transformer on the TX line is the primary galvanic barrier; a device fault cannot "
+    "key, jam, load, or back-feed the panel\u2019s other channels or required COM radios. "
+    "Use shielded cable; confirm output level is set conservatively so COM3 advisory audio "
+    "cannot mask required ATC audio on other channels.",
+    "<b>No acoustic grille needed on either the bezel or the box</b> for the installed configuration. "
+    "Remove grille-pattern cutouts from the CAD model; plug any bench-prototype holes cleanly.",
 ]))
 
 # ---- 5. Thermal ----
@@ -346,10 +379,10 @@ story.append(bullets([
 story.append(Paragraph("8 &nbsp; Deliverables Requested from the Engineer", h1))
 story.append(ListFlowable([
     ListItem(Paragraph("<b>3D CAD</b> (STEP + native) of both pieces, with the board set and switch modeled in place.", body), leftIndent=6),
-    ListItem(Paragraph("<b>2D drawings</b> with the DZUS hole pattern, the switch cutout (dimensioned from the chosen switch datasheet), grille pattern, and connector cutouts \u2014 fully dimensioned, GD&amp;T where it matters (switch cutout, DZUS holes).", body), leftIndent=6),
+    ListItem(Paragraph("<b>2D drawings</b> with the DZUS hole pattern, the switch cutout (dimensioned from the chosen switch datasheet), AUDIO IN / AUDIO OUT connector cutouts, and any remaining panel apertures \u2014 fully dimensioned, GD&amp;T where it matters (switch cutout, DZUS holes). No speaker-grille pattern required.", body), leftIndent=6),
     ListItem(Paragraph("<b>Connector pin-out</b> mapping the bezel-to-box harness to <font name='Mono' size='8.5'>board_pins.h</font> signals.", body), leftIndent=6),
     ListItem(Paragraph("A <b>bench-printable prototype</b> (FDM/SLA) of both pieces for fit-check before any aluminum.", body), leftIndent=6),
-    ListItem(Paragraph("<b>Mechanical BOM</b> (fasteners, inserts, connector, speaker, grille mesh, gasket).", body), leftIndent=6),
+    ListItem(Paragraph("<b>Mechanical BOM</b> (fasteners, inserts, connectors, AUDIO IN / AUDIO OUT panel feedthroughs, gaskets, conformal-coat).", body), leftIndent=6),
     ListItem(Paragraph("Tolerance call-outs: switch cutout &plusmn;0.1 mm; DZUS holes &plusmn;0.1 mm on the 9.525 mm pitch; general &plusmn;0.25 mm.", body), leftIndent=6),
 ], bulletType="1", leftIndent=18))
 
@@ -361,9 +394,13 @@ story.append(Spacer(1, 4))
 story.append(bullets([
     "<b>Mounting reality in the target panel:</b> is there a free DZUS slot, or must this go into a "
     "3-1/8 in round hole or a custom sub-panel? Pick the &sect;2.1 variant accordingly.",
-    "<b>Where the mic lives</b> (bezel vs. remote box) \u2014 affects acoustic ports and harness count.",
+    "<b>Audio-panel connection type:</b> confirm whether the install uses the analog isolated line tap "
+    "or the buffered digital I2S path \u2014 this drives the audio-input stage BOM and the AUDIO IN "
+    "connector pin-out. The Config Card sets the active source.",
+    "<b>COM3 channel input impedance</b> \u2014 confirm the panel's COM3-style input spec so the "
+    "isolated output stage (line driver + transformer) can be matched to the correct output level "
+    "and impedance (typically 600 \u2126).",
     "<b>Whether a 28 V input</b> is wanted, or USB 5 V bench power is sufficient for the demo.",
-    "<b>Speaker model</b> \u2014 sets the grille open area and the rear-volume cavity.",
 ]))
 
 # ---- 9. Reference dims + diagram ----
@@ -378,7 +415,8 @@ dims = [
     ["Standard pedestal panel width", "<b>&asymp; 146 mm</b> alu (144.45 mm face)", "DZUS panel convention"],
     ["Standard round instrument hole", "3-1/8 in = <b>79.4 mm</b>", "Instrument panel standard"],
     ["Remote box target envelope", "<b>&asymp; 110 &times; 80 &times; 45 mm</b>", "This design (confirm vs. boards)"],
-    ["Speaker", f"4&ndash;8 {OHM}, &ge; 2 W", "TECH_DATA.md &sect;3.2"],
+    ["Audio IN connector", "600 \u2126 line level (isolated) or buffered I2S", "TECH_DATA.md \u00a7D.3.1 / D.3.2"],
+    ["Audio OUT connector (COM3)", f"600 {OHM} line-level output (isolated, via transformer)", "TECH_DATA.md \u00a7D.3.3a"],
 ]
 story.append(make_table(dims, [2.25*inch, 2.55*inch, 1.9*inch]))
 story.append(Spacer(1, 12))

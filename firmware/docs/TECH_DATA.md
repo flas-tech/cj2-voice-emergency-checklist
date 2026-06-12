@@ -17,18 +17,22 @@ See [`wiring_diagram.png`](wiring_diagram.png) for the schematic.
 | MCU | **ESP32-S3** (dual-core LX7 @ 240 MHz) — **PSRAM required** by ESP-SR |
 | Recommended module | ESP32-S3-WROOM-1 **N16R8** (16 MB flash, 8 MB octal PSRAM) |
 | Speech stack | Espressif **ESP-SR**: AFE (NS/VAD) → WakeNet "Hi ESP" → MultiNet English |
-| Mic input | I2S MEMS microphone on **I2S_NUM_0** |
-| Audio output | I2S Class-D amplifier on **I2S_NUM_1** → 4–8 Ω speaker |
+| Crew audio input | **From the aircraft audio panel** on **I2S_NUM_0**, selectable per install: **analog** (isolated line tap → I2S codec ADC) or **digital** (I2S codec fed from a buffered tap). Onboard MEMS mic = bench-test only |
+| Audio output | **I2S_NUM_1** DAC → isolated line-level output stage (isolation transformer + line driver on the TX line) → **dedicated COM3-style audio-panel input channel**; crew hears checklist read-aloud in-headset. **Onboard speaker/amplifier removed.** Bench-test speaker-amp (MAX98357A) optionally substituted during development only. |
 | Config storage | **microSD** (SDMMC 1-bit), FAT32, one folder per aircraft |
 | Annunciation | Applied Avionics split-legend switch (dark-cockpit, FAA AC 25-11) |
 | Logic level | **3.3 V** (ESP32-S3 is **not** 5 V tolerant on GPIO) |
 
 Two build paths are supported:
 
-- **Integrated:** **ESP32-S3-Korvo-2** dev board (on-board dual mic, ES8311 codec,
-  NS4150 amp, microSD slot). Least wiring; best mic performance.
-- **DIY (this document):** ESP32-S3 DevKitC-1 N16R8 + INMP441 mic + MAX98357A amp +
+- **Integrated:** **ESP32-S3-Korvo-2** dev board (on-board ES8311 codec, microSD slot).
+  Repurpose line-in for the audio-panel receive feed; add isolated COM3 output stage
+  (DAC/line driver + output isolation transformer) externally.
+- **DIY (this document):** ESP32-S3 DevKitC-1 N16R8 + audio-panel input stage
+  (isolation transformer + I2S codec ADC) + isolated audio output stage
+  (I2S DAC → isolation transformer → line-level TX to COM3 channel) +
   microSD breakout + the annunciator switch.
+  The INMP441 mic and MAX98357A amp are bench-test items only; neither is installed.
 
 ---
 
@@ -47,9 +51,9 @@ Two build paths are supported:
 | SD clock | `SD_CLK_GPIO` | **7** | out | microSD | SDMMC CLK |
 | SD command | `SD_CMD_GPIO` | **9** | i/o | microSD | SDMMC CMD (needs pull-up) |
 | SD data 0 | `SD_D0_GPIO` | **8** | i/o | microSD | SDMMC DAT0 (needs pull-up) |
-| Speaker bit clock | `SPK_BCLK_GPIO` | **15** | out | spk I2S | I2S1 BCLK → amp BCLK |
-| Speaker word select | `SPK_LRCLK_GPIO` | **16** | out | spk I2S | I2S1 WS → amp LRC |
-| Speaker data out | `SPK_DOUT_GPIO` | **17** | out | spk I2S | I2S1 DOUT → amp DIN |
+| Audio-out bit clock | `AOUT_BCLK_GPIO` | **15** | out | audio-out I2S | I2S1 BCLK → isolated audio-out (COM3) line driver/DAC |
+| Audio-out word select | `AOUT_LRCLK_GPIO` | **16** | out | audio-out I2S | I2S1 WS → isolated audio-out (COM3) line driver/DAC |
+| Audio-out data | `AOUT_DOUT_GPIO` | **17** | out | audio-out I2S | I2S1 DOUT → isolated audio-out (COM3) DIN; DAC → isolation transformer → line-level TX to COM3-style audio-panel channel. **Bench-test note:** MAX98357A speaker-amp may be substituted here for bench testing only; not the installed output. |
 
 **Polarity macros** (flip to match your hardware):
 `PTT_ACTIVE_LOW=1`, `SELECT_ACTIVE_LOW=1`, `LEGEND_OFF_ACTIVE_HIGH=1`,
@@ -90,9 +94,20 @@ Supply **1.8–3.3 V** (never 5 V), ~2.2–2.5 mA at 3.3 V. ([INMP441 datasheet]
   discharge the bus when tri-stated). Most breakout boards include it.
 - Do **not** clock WS/SCK with VDD unpowered (stresses ESD diodes).
 
-### 3.2 MAX98357A Class-D amplifier → ESP32-S3 (I2S_NUM_1)
+### 3.2 Isolated audio output stage → COM3-style audio-panel channel (I2S_NUM_1) — installed output
+
+The installed output is a galvanically-isolated, line-level output stage on I2S_NUM_1
+(GPIO15 BCLK, GPIO16 LRC, GPIO17 DOUT). Chain: ESP32-S3 I2S DAC → I2S-to-analog
+DAC/line driver (e.g. PCM5102A class) → line-level isolation transformer → line-level TX
+to dedicated COM3-style audio-panel input channel. The isolation transformer provides
+galvanic isolation; a device fault **cannot key, jam, load, or back-feed** the panel's
+other channels or required COM radios.
+
+**Bench-test-only option — MAX98357A Class-D amplifier.** For bench verification before
+the isolated output stage is fitted, a MAX98357A may be wired on GPIO15/16/17.
 Supply **2.5–5.5 V**; 2.4 mA quiescent; peak speaker current up to **~650 mA** at
 5 V/4 Ω. **No MCLK required.** ([Analog Devices datasheet](https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf), [Adafruit guide](https://cdn-learn.adafruit.com/downloads/pdf/adafruit-max98357-i2s-class-d-mono-amp.pdf))
+**This bench speaker is NOT routed to the aircraft audio panel and is NOT the installed output.**
 
 | MAX98357A pin | Connects to | Net |
 |---|---|---|
@@ -194,15 +209,16 @@ need their own supply and a switch device:
 
 | Rail | Loads | Typical | Peak |
 |---|---|---|---|
-| **3.3 V** | ESP32-S3 + Wi-Fi off + mic + microSD | ~80–150 mA | ~250 mA (SD init / SR burst) |
-| **5 V** | MAX98357A speaker output | a few mA idle | **~650 mA** (5 V/4 Ω, loud) |
+| **3.3 V** | ESP32-S3 + Wi-Fi off + audio codec + audio output DAC/line driver + microSD | ~90–180 mA | ~290 mA (SD init / SR burst) |
+| **5 V** | Audio output line driver (installed; typically low-current line-level stage) | a few mA | ~50 mA (varies; **not the ~650 mA speaker-amp figure** — speaker amp removed) |
 | **Lamp rail** | up to 2 legend halves | 0 (dark) | per lamp spec (e.g. 28 V incand.) |
 
-- Power the board from **USB 5 V capable of ≥ 1 A** (the on-board 3.3 V LDO feeds the
-  S3, mic, and SD). Reserve headroom for the amp's peak.
+- Power the board from **USB 5 V capable of ≥ 1 A** (the removed MAX98357A was the
+  dominant load; the new isolated output stage is much lower current).
 - Keep the **legend-lamp supply separate** from the logic 5 V if using 28 V lamps;
   only the grounds are common.
-- Add bulk decoupling: **≥ 100 µF** near the amp VIN plus 0.1 µF per device.
+- Add bulk decoupling: **≥ 100 µF** near the output line driver (if applicable) plus
+  0.1 µF per device.
 
 ---
 
@@ -211,27 +227,35 @@ need their own supply and a switch device:
 | Qty | Part | Spec / example | Approx. |
 |---|---|---|---|
 | 1 | ESP32-S3 DevKit | DevKitC-1 **N16R8** (PSRAM!) | $12–18 |
-| 1 | I2S MEMS mic | **INMP441** or ICS-43434 breakout | $4–6 |
-| 1 | I2S amp | **MAX98357A** breakout | $4–7 |
-| 1 | Speaker | 4–8 Ω, ≥ 2 W | $2–5 |
+| 1 | Audio-panel input codec | I2S codec ADC with line-in: **ES8388/ES7210** (MCLK+I2C) or **PCM1808/CS5343** (self-clocking) | $5–12 |
+| 1 | **Audio isolation transformer** (input) | 600Ω:600Ω aviation audio ground-loop isolator (**Allen Avionics AGL** series) | varies |
+| 1 | **Audio output isolation transformer** | 600Ω:600Ω line-level isolation transformer for TX output stage (e.g. Allen Avionics AGL series or equivalent) | varies |
+| 1 | **Audio output DAC / line driver** | I2S DAC IC (e.g. PCM5102A class) for COM3 output stage | $5–10 |
+| *(bench only)* | I2S amp | **MAX98357A** breakout — bench-test use only; not installed | $4–7 |
+| *(bench only)* | Speaker | 4–8 Ω, ≥ 2 W — bench-test use only; not installed | $2–5 |
 | 1 | microSD card + breakout | FAT32; Korvo-2 has on-board slot | $5–8 |
 | 1 | Annunciator switch | Applied Avionics VIVISUN/Korry split-legend (or 2 LEDs for bench) | varies |
 | 2 | Lamp driver | logic-level N-MOSFET (2N7002/AO3400) **or** NPN (2N2222) | <$1 |
 | 4 | Resistors | 1 kΩ ×2 (gate), 10 kΩ ×2 (pulldown) | <$1 |
 | 2–3 | Pull-ups | 10 kΩ on SD CMD/DAT0 (if breakout lacks them) | <$1 |
-| — | Caps | 0.1 µF per device, 100 µF bulk near amp | <$1 |
+| — | Caps | 0.1 µF per device, 100 µF bulk near output line driver (if applicable) | <$1 |
 | 1 | PTT button | momentary SPST (or use BOOT) | <$1 |
 
-**Integrated alternative:** ESP32-S3-Korvo-2 (~$45–55) replaces the mic/codec/amp/SD
-items above; use its BSP pin map and the ES8311 codec init.
+**Integrated alternative:** ESP32-S3-Korvo-2 (~$45–55) provides codec/SD on-board;
+use its BSP pin map and the ES8311 codec init, repurpose its line-in for the audio-panel
+receive feed, and add the isolated COM3 output stage externally (DAC/line driver +
+output isolation transformer).
 
 ---
 
 ## 7. Korvo-2 differences (integrated build)
 
-- Audio codec is **ES8311** (I2C control + I2S data) with an **NS4150** speaker amp —
-  not the MAX98357A path. Initialize the codec over I2C (see `esp_codec_dev`/BSP).
-- **Dual mics** feed the AFE → markedly better recognition in noise than one INMP441.
+- Audio codec is **ES8311** (I2C control + I2S data). Initialize over I2C (see
+  `esp_codec_dev`/BSP). The NS4150 speaker amp on the board is **not used** in the
+  installed configuration (speaker removed); the isolated COM3 output stage is added
+  externally on the AOUT_BCLK/LRCLK/DOUT lines (GPIO15/16/17).
+- **Dual mics** feed the AFE → markedly better recognition in noise than one INMP441
+  (bench-test input only; installed input is the audio-panel tap).
 - microSD slot is wired on the board; map `SD_*` pins to the Korvo-2 schematic.
 - Expose the annunciator on free header GPIOs; keep the same firmware logic.
 

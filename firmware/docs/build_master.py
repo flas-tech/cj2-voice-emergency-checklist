@@ -230,7 +230,7 @@ story.append(Paragraph("A.1 &nbsp; What it is (and is not)", h2))
 isnot = [
     ["It <b>is</b>", "It <b>is not</b>"],
     ["An <b>advisory</b> read-aloud reader of checklist items", "A required or primary aircraft system"],
-    ["<b>Receive-only</b> on a single audio tap; no command/data to any aircraft system", "A transmitter, a panel control, or an interface to avionics/engines/controls"],
+    ["<b>Receive-only on the audio-panel INPUT tap</b> (galvanically isolated, listen-only); plus a <b>separate, galvanically-isolated OUTPUT into a dedicated COM3-style audio-panel channel</b> for checklist read-aloud; no command/data to any aircraft system", "A transmitter on aircraft COM radios, a panel control, or an interface to avionics/engines/flight controls. It <b>does</b> inject advisory audio into one dedicated aux/COM3-style channel via an isolated output \u2014 but that output is on a <b>separate channel</b> from the receive tap and is electrically isolated from required COM channels"],
     ["Driven entirely by the installed <b>Config Card + Data Card</b>", "Tied to one airframe in firmware"],
     ["<b>Offline</b>, deterministic, single-chip", "A cloud / connected / large-vocabulary STT device"],
     ["A <b>complement</b> to the certified/required checklist", "A substitute for the AFM/QRH or required checklist"],
@@ -238,22 +238,24 @@ isnot = [
 story.append(make_table(isnot, [3.35*inch, 3.35*inch]))
 story.append(Spacer(1, 8))
 story.append(Paragraph(
-    "This framing is not cosmetic \u2014 it is the foundation of the certification argument in Part C. A "
-    "device that is non-required, advisory-only, fails to a clearly-annunciated safe state, and connects "
-    "to the aircraft only through a <b>galvanically-isolated, receive-only</b> audio tap is the profile "
-    "that fits the <b>NORSEE</b> (Non-Required Safety Enhancing Equipment) approval path and that lets the "
-    "program lean on DO-160G environmental qualification while avoiding DO-178C software assurance. Note "
-    "that the audio-panel tap is a <b>wired interface to an aircraft system</b> \u2014 it deliberately trades "
-    "the old \u201celectrically independent\u201d claim for a weaker but defensible \u201creceive-only, isolated\u201d "
-    "posture. Part C addresses this honestly; it is the most significant certification change in this "
-    "revision.", bodyj))
+    "This framing is not cosmetic \u2014 it is the foundation of the certification argument in Part C. The "
+    "device connects to the aircraft through <b>two electrically separate, galvanically-isolated channels</b>: "
+    "(1) a <b>receive-only isolated INPUT tap</b> (listen-only; cannot back-feed) used as the ASR speech "
+    "source, and (2) a <b>separate, galvanically-isolated OUTPUT into a dedicated COM3-style audio-panel "
+    "channel</b> (an isolated line-level transmit stage) that delivers checklist read-aloud audio to "
+    "the crew in-headset. The input-tap language of \u201creceive-only, isolated\u201d is preserved for the "
+    "INPUT path; the OUTPUT path is a deliberate, bounded, unidirectional injection into one dedicated "
+    "aux channel. This <b>dual-isolated-channel architecture</b> is the interface posture the Part C "
+    "argument is built on. Note that the <b>addition of the isolated COM3-style audio output is the most "
+    "significant certification and interface-risk change in this revision</b>; Part C addresses it "
+    "honestly.", bodyj))
 
 story.append(Paragraph("A.2 &nbsp; Generic system architecture", h2))
 arch = [
     ["Block", "Function", "Install-/aircraft-specific?"],
     ["<b>MCU + speech stack</b>", "VOX/wake word &rarr; command recognition &rarr; playback sequencing", "No \u2014 fixed firmware"],
     ["<b>Audio-panel input stage</b>", "Takes crew speech <b>from the aircraft audio panel</b> \u2014 analog (isolated line tap) or digital (I2S codec), selectable per install", "<b>Config-driven</b> \u2014 source set by the Config Card; path wired at install"],
-    ["<b>Speaker + amplifier (I2S)</b>", "Reads checklist items / annunciations aloud (own speaker; not fed back to the panel)", "No"],
+    ["<b>Audio-panel output stage (isolated TX to COM3-style channel)</b>", "Delivers checklist read-aloud audio <b>out to a dedicated COM3-style audio-panel input channel</b> via a galvanically-isolated, line-level output stage (isolation transformer + line driver on the TX line); crew hears checklist items in-headset. <b>Onboard speaker/amplifier removed.</b> The output is on a <b>separate channel and separate connector</b> from the receive-only INPUT tap.", "No (fixed output stage hardware; the audio-panel COM3 channel it drives is chosen at installation)"],
     ["<b>Config Card (microSD, slot 1)</b>", "Defines the installation: active aircraft, audio source (analog/digital), VOX parameters, hardware options", "<b>Yes \u2014 per installation</b>"],
     ["<b>Data Card (microSD, slot 2)</b>", "Carries the checklist library, trigger/advance vocabulary, and read-aloud audio", "<b>Yes \u2014 per aircraft</b>"],
     ["<b>Annunciator switch</b>", "Dark-cockpit status / fault indication, IN/OUT select, PTT override", "No"],
@@ -283,13 +285,20 @@ story.append(numbered([
     "lights the amber FAULT legend. Selected OUT shows the white OFF status and <b>inhibits</b> the fault "
     "legend (a deliberately deselected system needs no crew action). A power-up lamp test proves the legend "
     "is alive.",
-    "<b>Receive-only, isolated interface.</b> The device's only tie to an aircraft system is the "
-    "<b>audio-panel input</b>, and that tie is <b>one-way (listen) and galvanically isolated</b> (see C.3a, "
-    "D.3.1): a high-impedance, isolation-transformer-coupled tap for the analog path, or a buffered "
-    "receive-only feed for the digital path. The unit <b>cannot transmit, key, mute, or back-feed</b> the "
-    "panel, and it still draws power on its own protected rail. A short, open, or failure of the device "
-    "cannot affect audio-panel function. This replaces the former \u201cno electrical tie at all\u201d claim "
-    "with a narrower, testable one \u2014 and it is the crux of the Part C argument.",
+    "<b>Dual-isolated-channel interface.</b> The device's ties to the aircraft audio panel are two "
+    "electrically separate, galvanically-isolated channels (C.3a, D.3): "
+    "(a) a <b>receive-only isolated INPUT tap</b> \u2014 a high-impedance, isolation-transformer-coupled "
+    "or buffered-receive-only tap off the audio panel; the unit <b>cannot transmit, key, mute, or "
+    "back-feed</b> via this path; a short, open, or power loss inside the device cannot affect the "
+    "panel via the input path; and "
+    "(b) an <b>isolated OUTPUT into a dedicated COM3-style channel</b> \u2014 a galvanically-isolated, "
+    "line-level output stage (isolation transformer on the TX line) that injects checklist read-aloud "
+    "audio into the panel's dedicated COM3-style aux channel; physically separate connector from the "
+    "input tap. The isolation barrier ensures a device fault <b>cannot key, jam, load, or back-feed "
+    "the panel's other channels or required COM radios</b>. "
+    "This output channel is the most significant certification and interface-risk item in this revision. "
+    "The device draws power on its own protected rail. This dual-isolated-channel posture replaces the "
+    "former \u201creceive-only only\u201d claim with a narrower, testable one covering both directions.",
 ]))
 
 # ================= PART B =================
@@ -535,13 +544,16 @@ story.append(numbered([
     "and a procedural requirement that the crew cross-checks against the required checklist. Neither failure "
     "reduces the crew's ability to cope with a condition worse than minor \u2014 the NORSEE safety-evaluation "
     "test<super>1</super>.",
-    "<b>Bounded interface (not full independence).</b> This revision adds <b>one</b> tie to an aircraft "
-    "system: a <b>receive-only, galvanically-isolated</b> audio tap off the audio panel (C.3a). The device "
-    "takes <b>no input that commands a function and produces no output to any aircraft system</b> \u2014 it only "
-    "listens. Physical/electrical separation is preserved on the power and signal-return side by the isolation "
-    "barrier. This is a <b>weaker claim than the former \u201cno electrical tie at all,\u201d</b> and is called "
-    "out as such; the argument now rests on <i>directionality + isolation</i> rather than total "
-    "separation<super>1</super>.",
+    "<b>Bounded dual-isolated interface.</b> This revision adds <b>two</b> ties to an aircraft "
+    "system (C.3a), both galvanically isolated: (a) a <b>receive-only isolated INPUT tap</b> off "
+    "the audio panel \u2014 the device cannot command a function or produce output via this path; and "
+    "(b) a <b>dedicated isolated OUTPUT</b> into a COM3-style audio-panel channel for checklist "
+    "read-aloud delivery \u2014 a unidirectional audio injection through an isolation transformer, not "
+    "a control/keying/command path. The device still produces <b>no command or control output to "
+    "any aircraft system</b>, but it does inject advisory audio into one dedicated aux channel. "
+    "The output injection is a <b>more invasive interface than a pure receive-only tap</b> and is "
+    "called out as such; the argument now rests on <i>isolation + directionality + channel "
+    "separation</i> rather than <i>total receive-only</i><super>1</super>.",
     "<b>Qualitative safety evaluation is permitted</b> for non-complex equipment; a quantitative probabilistic "
     "analysis (and the DO-178C machinery that feeds it) is not required for a minor-failure advisory "
     "function<super>1</super>.",
@@ -554,13 +566,16 @@ story.append(callout(
     "the audio-panel interface is judged to compromise an aircraft communication system</b>), the program "
     "moves to &sect;2 of the NORSEE policy (xx.1309, ARP4754A/ARP4761) and software assurance re-enters. "
     "(2) \u201cNo DO-178C\u201d is <b>earned by architecture and procedural mitigations</b>, not by labeling \u2014 "
-    "the revert-to-unopened behavior, the validation gate, the dark-cockpit annunciation, the <b>receive-only "
-    "isolated interface</b>, and a <b>mandatory limitation that the unit may not be used as a substitute for the "
+    "the revert-to-unopened behavior, the validation gate, the dark-cockpit annunciation, the "
+    "<b>dual-isolated-channel interface</b> (receive-only input tap + isolated output into a dedicated "
+    "COM3-style channel), and a <b>mandatory limitation that the unit may not be used as a substitute for the "
     "required checklist</b> are the price of that classification. "
-    "(3) <b>The audio-panel tap raises the installation bar.</b> What was arguably a minor alteration (a "
-    "self-contained box drawing only power) now wires into an <b>aircraft communication system</b>, pushing the "
-    "path toward an STC or careful field-approval scrutiny of the interface on most airframes (C.3a, C.5) \u2014 "
-    "do not assume a logbook-entry minor alteration any more. "
+    "(3) <b>The audio-panel interface raises the installation bar \u2014 further still with the output "
+    "channel.</b> What was arguably a minor alteration (a self-contained box drawing only power) now "
+    "wires into an <b>aircraft communication system</b> for both receive and transmit. The output channel "
+    "is a more invasive interface than a pure receive-only tap, pushing the path toward an STC or "
+    "careful field-approval scrutiny on most airframes (C.3a, C.5) \u2014 do not assume a logbook-entry "
+    "minor alteration any more. "
     "(4) <b>VOX adds a human-factors failure mode.</b> Hands-free activation can <b>false-trigger</b> on ambient "
     "cockpit speech, ATC audio, or crew conversation, potentially reading an unrequested checklist; it is "
     "mitigated by VAD sensitivity tuning, a bounded trigger grammar, the retained PTT override, and the "
@@ -568,49 +583,60 @@ story.append(callout(
 
 story.append(Paragraph("C.3a &nbsp; Audio-panel interface impact (the honest part)", h2))
 story.append(Paragraph(
-    "Tapping the <b>aircraft audio panel</b> is the single biggest certification change in this revision. It "
-    "must be argued explicitly, because it directly <b>weakens the independence leg</b> of C.3 and changes the "
-    "installation classification. The goal is to make the interface so narrow and so demonstrably one-way that "
-    "the residual failure stays minor.", bodyj))
+    "This revision adds <b>two</b> interfaces to the aircraft audio panel: a receive-only isolated "
+    "INPUT tap (for crew-speech ASR) and a dedicated isolated OUTPUT channel (COM3-style) for "
+    "checklist read-aloud delivery. Both must be argued explicitly. The goal is to make each interface "
+    "so narrow and so demonstrably bounded that the residual failure stays minor. The output path is "
+    "the more significant of the two.", bodyj))
 story.append(Spacer(1, 4))
 story.append(Paragraph("<b>What the interface is \u2014 and is not:</b>", body))
 ai_iface = [
-    ["Property", "Design commitment"],
-    ["<b>Directionality</b>", "<b>Receive-only.</b> The device has no path to transmit, key a radio, mute, or "
-        "inject audio into the panel. There is no DAC, line-driver, or PTT line going <i>to</i> the panel."],
-    ["<b>Isolation (analog path)</b>", "A <b>600 " + OHM + " aviation audio ground-loop isolation transformer</b> "
-        "(e.g. Allen Avionics AGL series) provides galvanic isolation between the panel and the device; "
-        "high-impedance, line-level tap through a series resistor so the device is a negligible load."],
-    ["<b>Isolation (digital path)</b>", "A buffered, receive-only I2S input from a codec ADC fed by the same "
-        "isolated / high-impedance tap; no clock or data driven back toward any aircraft bus."],
-    ["<b>Fault containment</b>", "A short, open, or power loss inside the device cannot load down, ground, or "
-        "back-feed the panel \u2014 the isolation barrier and high-impedance tap see to that."],
-    ["<b>No operational credit</b>", "The panel feed is <i>listened to</i> for recognition only; it is never "
-        "relied on for any aircraft function."],
+    ["Property", "INPUT tap (receive-only)", "OUTPUT channel (isolated TX to COM3)"],
+    ["<b>Directionality</b>",
+        "<b>Receive-only.</b> No path to transmit, key a radio, mute, or back-feed.",
+        "<b>Output-only.</b> Unidirectional line-level audio injection into the panel's dedicated COM3-style aux channel. Not a keying or control path."],
+    ["<b>Isolation</b>",
+        "<b>600 " + OHM + " aviation audio isolation transformer</b> (e.g. Allen Avionics AGL series) on the analog path; buffered receive-only I2S for the digital path. No data driven back toward any aircraft bus.",
+        "<b>Line-level isolation transformer</b> on the TX output line; galvanic barrier between the device and the panel's COM3 input. A fault in the device cannot key, jam, load, or back-feed the panel's other channels or required COM radios."],
+    ["<b>Fault containment</b>",
+        "Short, open, or power loss inside the device cannot load down, ground, or back-feed the panel via the input path.",
+        "Short, open, or power loss cannot key or jam the panel via the output path; the isolation transformer is the primary barrier."],
+    ["<b>Channel separation</b>",
+        "Separate connector from the OUTPUT path; cannot be mis-mated.",
+        "Dedicated aux channel (COM3-style), not the crew intercom or any required COM radio channel. A failure on the output side cannot affect other panel channels."],
+    ["<b>No operational credit</b>",
+        "The panel feed is <i>listened to</i> for recognition only.",
+        "The injected audio is advisory/informational only; the crew's authority is the required checklist."],
 ]
-story.append(make_table(ai_iface, [1.5*inch, 5.2*inch]))
+story.append(make_table(ai_iface, [1.3*inch, 2.7*inch, 2.7*inch]))
 story.append(Spacer(1, 6))
-story.append(Paragraph("<b>Why this still supports a minor classification:</b>", body))
+story.append(Paragraph("<b>Why this still supports a minor classification (INPUT tap):</b>", body))
 story.append(bullets([
     "The audio panel and intercom <b>continue to function identically whether the device is present, powered, "
     "or failed</b> \u2014 the tap is parallel and high-impedance.",
-    "The failure modes the tap could plausibly add (loading, ground loop, injected noise) are <b>removed by "
+    "The failure modes the input tap could plausibly add (loading, ground loop, injected noise) are <b>removed by "
     "isolation and the receive-only topology</b>, and are exactly what <b>DO-160G conducted/induced-susceptibility "
     "and the audio-system installation tests</b> are meant to verify (C.4).",
     "This is analogous to other <b>listen-only</b> cockpit aids (cockpit voice recorders, audio-logging headsets) "
     "that tap audio without compromising the source.",
 ]))
 story.append(Spacer(1, 4))
-story.append(Paragraph("<b>Why it nonetheless raises the bar (do not gloss over this):</b>", body))
+story.append(Paragraph("<b>Why the output channel raises the bar (do not gloss over this):</b>", body))
 story.append(bullets([
-    "The interface now touches an <b>aircraft communication system</b>, so the installation will in most cases "
-    "be evaluated as a change that affects that system \u2014 pushing the path toward <b>STC / careful field "
-    "approval</b> rather than a simple logbook minor alteration (C.5).",
-    "The ACO may require <b>substantiation that the tap does not degrade comm audio</b> (intercom level, sidetone, "
-    "hot-mic/VOX behavior of the <i>panel's own</i> circuits) under all conditions, including device failure.",
-    "Audio-panel wiring practice matters: many panels <b>ground audio jacks only at the intercom</b> to avoid "
-    "ground loops, so the tap point and shield grounding must be coordinated with the specific panel's "
-    "installation manual.",
+    "<b>Isolation/failure modes.</b> The isolation transformer on the TX line is the primary barrier; the "
+    "isolation design ensures a fault inside the device (including output-stage failure, supply fault, or "
+    "software runaway) <b>cannot key, jam, load, or back-feed</b> the panel's COM channels or intercom.",
+    "<b>Non-interference with required COM audio.</b> The cert argument must show the injected advisory audio "
+    "<b>cannot interfere with</b> required ATC/aircraft audio on the panel \u2014 e.g. that the output level "
+    "is set conservatively, that the COM3 channel cannot bleed onto required COM1/COM2 channels, and that "
+    "the injected audio cannot mask or be mistaken for required audio.",
+    "<b>Masking/intelligibility human factors.</b> There must be no plausible confusion between the "
+    "injected checklist audio and required ATC/aircraft audio, and the injected audio must not mask "
+    "ATC calls. This requires careful level treatment, a conservative output level, and the standing "
+    "limitation that the required checklist remains the authority.",
+    "The interface now wires into an <b>aircraft communication system for both receive and transmit</b>; "
+    "plan for STC or carefully substantiated field approval that explicitly addresses the isolated output "
+    "channel (C.5).",
 ]))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
@@ -651,11 +677,14 @@ story.append(callout(
     "an emissions-qualification advantage (&sect;21).", "info"))
 story.append(Spacer(1, 6))
 story.append(callout(
-    "<b>Audio-interface-specific evidence (beyond the table):</b> because the unit now taps the audio panel, "
-    "qualification should additionally demonstrate that \u2014 across all DO-160G conditions and <b>including a "
-    "failed/unpowered device</b> \u2014 the tap does not degrade audio-panel performance (intercom level, sidetone, "
-    "the panel's own VOX/hot-mic behavior). The isolation transformer and high-impedance receive-only topology "
-    "(C.3a) are the design basis for that demonstration.", "info"))
+    "<b>Audio-interface-specific evidence (beyond the table):</b> because the unit now connects to the "
+    "audio panel on both a receive-only INPUT tap and an isolated OUTPUT channel, qualification should "
+    "additionally demonstrate \u2014 across all DO-160G conditions and <b>including a failed/unpowered device</b> "
+    "\u2014 that (a) the receive tap does not degrade audio-panel performance (intercom level, sidetone, the "
+    "panel's own VOX/hot-mic behavior), and (b) the isolated OUTPUT cannot key, jam, load, or back-feed "
+    "the panel's other channels or required COM radios, and the injected advisory audio level does not "
+    "mask or interfere with required ATC/aircraft audio. The isolation transformers on both paths (C.3a) "
+    "and the high-impedance receive-only input topology are the design basis for that demonstration.", "info"))
 
 story.append(PageBreak())
 story.append(Paragraph("C.5 &nbsp; Approval &amp; installation path (per airframe)", h2))
@@ -676,12 +705,14 @@ story.append(numbered([
 ]))
 story.append(Spacer(1, 6))
 story.append(callout(
-    "<b>The audio-panel interface raises the install classification.</b> Because the device now wires into an "
-    "<b>aircraft communication system</b> (the audio panel), step 4 should be approached assuming the interface "
-    "makes the alteration <b>more than minor</b> on most airframes \u2014 i.e. plan for an <b>STC or a field "
-    "approval that specifically substantiates the audio tap</b> (receive-only, isolated, no degradation of comm "
-    "audio per C.3a/C.4), not a bare logbook entry. The earlier power-only/independent design could credibly "
-    "claim a minor alteration; this one generally cannot.", "warn"))
+    "<b>The audio-panel interface raises the install classification \u2014 the output channel raises it further.</b> "
+    "Because the device now wires into an <b>aircraft communication system</b> for both receive and transmit, "
+    "step 4 should be approached assuming the interface makes the alteration <b>more than minor</b> on most "
+    "airframes \u2014 i.e. plan for an <b>STC or a field approval that specifically substantiates both the "
+    "receive-only input tap and the isolated COM3-style audio output</b> (isolated, no degradation of comm "
+    "audio, no keying/jamming of required COM channels, no masking per C.3a/C.4), not a bare logbook entry. "
+    "The earlier power-only/independent design could credibly claim a minor alteration; this one generally "
+    "cannot.", "warn"))
 
 story.append(Paragraph("C.5.1 &nbsp; Where TSO and PMA fit (and don't, here)", h3))
 story.append(bullets([
@@ -721,9 +752,10 @@ csm = [
     ["Software assurance", "<b>DO-178C not sought</b> \u2014 advisory/minor (C.3)", "Architecture supports it; ACO concurrence pending"],
     ["Complex hardware", "DO-254 not invoked (simple COTS) \u2014 AC 20-152A", "N/A by design"],
     ["Human factors / color", "AC 25-11B conventions, dark-cockpit", "Implemented in design"],
-    ["Audio-panel interface", "Receive-only + galvanic isolation (C.3a, C.4 &sect;18/&sect;19)", "Architecture defined; substantiation/test pending"],
+    ["Audio-panel interface \u2014 INPUT tap", "Receive-only + galvanic isolation (C.3a, C.4 &sect;18/&sect;19); cannot key/jam/back-feed via input path", "Architecture defined; substantiation/test pending"],
+    ["<b>Audio-panel interface \u2014 OUTPUT channel (COM3)</b>", "Galvanically-isolated line-level TX to dedicated COM3-style channel; isolation transformer on TX line; cannot key/jam/load panel or required COMs; advisory audio cannot mask required ATC audio (C.3a)", "<b>Architecture defined; this is the most significant new interface-risk item \u2014 isolation design + safety assessment required before productization</b>"],
     ["VOX false-activation", "Bounded grammar + tunable VAD + retained PTT override (C.3a/D.3.2)", "Mitigations defined; ACO human-factors concurrence pending"],
-    ["Installation", "STC / substantiated field approval (audio tap is more than minor); minor-alteration unlikely", "Per-aircraft; none performed"],
+    ["Installation", "STC / substantiated field approval (audio-panel interface \u2014 both input tap and isolated COM3 output \u2014 is more than minor); minor-alteration unlikely", "Per-aircraft; none performed"],
     ["Part 25 airframes", "STC (NORSEE excluded)", "Flagged"],
 ]
 story.append(make_table(csm, [1.65*inch, 3.25*inch, 1.8*inch]))
@@ -757,18 +789,20 @@ ovr = [
     ["Speech stack", "Espressif <b>ESP-SR</b>: AFE (NS/<b>VAD &rarr; VOX</b>) &rarr; WakeNet \u201cHi ESP\u201d &rarr; MultiNet English"],
     ["<b>Crew audio input</b>", "<b>From the aircraft audio panel</b> on <b>I2S_NUM_0</b>, selectable per install: <b>analog</b> (isolated line tap &rarr; I2S codec ADC) or <b>digital</b> (I2S codec ADC fed from a buffered tap). Onboard MEMS mic = bench-test only"],
     ["Activation", "<b>VOX</b> (AFE VAD) primary, hands-free; <b>PTT</b> retained as manual override"],
-    ["Audio output", f"I2S Class-D amplifier on <b>I2S_NUM_1</b> &rarr; 4\u20138 {OHM} speaker (own speaker; not fed to the panel)"],
+    ["Audio output", f"<b>I2S_NUM_1</b> DAC &rarr; isolated line-level output stage (isolation transformer + line driver on the TX line) &rarr; <b>dedicated COM3-style audio-panel input channel</b>; crew hears checklist read-aloud in-headset. <b>Onboard speaker/amplifier removed.</b> A bench-test-only speaker output may optionally be provided in the development unit (not the installed configuration)."],
     ["Config storage", "<b>two microSD slots</b> \u2014 slot 1 <b>Config Card</b>, slot 2 <b>Data Card</b> (Part B), FAT32"],
     ["Annunciation", "Applied Avionics split-legend switch (dark-cockpit, AC 25-11B)"],
 ]
 story.append(make_table(ovr, [1.6*inch, 5.1*inch]))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
-    "Two build paths: <b>Integrated</b> (ESP32-S3-Korvo-2 dev board \u2014 ES8311/ES7210 codec, NS4150 amp, "
-    "microSD slot; line-in repurposed for the audio-panel feed) or <b>DIY</b> (ESP32-S3 DevKitC-1 N16R8 + "
-    "audio-panel input stage [isolation transformer + I2S codec ADC] + MAX98357A amp + <b>two</b> microSD "
-    "breakouts + the annunciator switch). The earlier INMP441 MEMS mic remains available only as a bench-test "
-    "input.", body))
+    "Two build paths: <b>Integrated</b> (ESP32-S3-Korvo-2 dev board \u2014 ES8311/ES7210 codec, "
+    "microSD slot; line-in repurposed for the audio-panel receive feed; output stage wired to COM3 "
+    "isolation transformer) or <b>DIY</b> (ESP32-S3 DevKitC-1 N16R8 + audio-panel input stage "
+    "[isolation transformer + I2S codec ADC] + isolated audio output stage [I2S DAC &rarr; isolation "
+    "transformer &rarr; line-level TX to COM3 channel] + <b>two</b> microSD breakouts + the annunciator "
+    "switch). The earlier INMP441 MEMS mic and MAX98357A speaker-amp remain available only as "
+    "bench-test items; neither is used in the installed configuration.", body))
 
 story.append(Paragraph("D.2 &nbsp; Master pin map", h2))
 pins = [
@@ -789,9 +823,9 @@ pins = [
     ["SD data 0", "<font name='Mono' size='7.5'>SD_D0_GPIO</font>", "8", "i/o", "SDMMC DAT0 (needs pull-up)"],
     ["Config-card detect", "<font name='Mono' size='7.5'>SD_CFG_CD_GPIO</font>", "47", "in (PU)", "slot-1 card-detect (Config Card)"],
     ["Data-card detect", "<font name='Mono' size='7.5'>SD_DAT_CD_GPIO</font>", "38", "in (PU)", "slot-2 card-detect (Data Card)"],
-    ["Speaker bit clock", "<font name='Mono' size='7.5'>SPK_BCLK_GPIO</font>", "15", "out", "I2S1 BCLK &rarr; amp BCLK"],
-    ["Speaker word select", "<font name='Mono' size='7.5'>SPK_LRCLK_GPIO</font>", "16", "out", "I2S1 WS &rarr; amp LRC"],
-    ["Speaker data out", "<font name='Mono' size='7.5'>SPK_DOUT_GPIO</font>", "17", "out", "I2S1 DOUT &rarr; amp DIN"],
+    ["Audio-out bit clock", "<font name='Mono' size='7.5'>AOUT_BCLK_GPIO</font>", "15", "out", "I2S1 BCLK &rarr; isolated audio-out (COM3) line driver/DAC"],
+    ["Audio-out word select", "<font name='Mono' size='7.5'>AOUT_LRCLK_GPIO</font>", "16", "out", "I2S1 WS &rarr; isolated audio-out (COM3) line driver/DAC"],
+    ["Audio-out data", "<font name='Mono' size='7.5'>AOUT_DOUT_GPIO</font>", "17", "out", "I2S1 DOUT &rarr; isolated audio-out (COM3) DIN; DAC &rarr; isolation transformer &rarr; line-level TX to COM3-style audio-panel channel. <b>Bench-test note:</b> a speaker-amp (e.g. MAX98357A) may be substituted here for bench testing only; not the installed output."],
 ]
 story.append(make_table(pins, [1.35*inch, 1.55*inch, 0.45*inch, 0.55*inch, 2.8*inch]))
 story.append(Spacer(1, 6))
@@ -832,9 +866,10 @@ story.append(bullets([
     "negligible load; the device cannot back-feed the panel. Scale the divider so panel line level maps to the "
     "codec's full-scale input without clipping.",
     "<b>Digital path (<font name='Mono' size='8'>digital</font>).</b> Where the codec sits closer to the "
-    "source, take a buffered, <b>receive-only</b> I2S/line feed into the same codec ADC. There is <b>no I2S "
-    "output toward the panel</b> \u2014 BCLK/WS/MCLK are generated by the ESP32 for the ADC only, and no data "
-    "line is driven back toward any aircraft bus.",
+    "source, take a buffered, <b>receive-only</b> I2S/line feed into the same codec ADC. This is a "
+    "<b>receive-only</b> I2S/line feed \u2014 BCLK/WS/MCLK are generated by the ESP32 for the ADC only, "
+    "and no data line is driven back toward any aircraft bus <i>via this input path</i>. (The separate "
+    "audio output to the COM3 channel is on I2S_NUM_1 via a dedicated isolated output stage; see D.3.3a.)",
     "<b>Codec wiring:</b> SCK&rarr;GPIO4, WS&rarr;GPIO5, ADC_DATA&rarr;GPIO6, MCLK&rarr;GPIO3, I2C "
     "SDA/SCL&rarr;GPIO1/2; supply per the codec (1.8\u20133.3 V analog/digital rails); decouple each rail "
     "0.1 &micro;F.",
@@ -852,11 +887,31 @@ story.append(Paragraph(
     "the sole trigger (VOX disabled). PTT is debounced in software. There is <b>no PTT/keying line toward the "
     "aircraft</b> \u2014 this button only tells the device's own recognizer to listen.", bodyj))
 story.append(Paragraph(
-    "<b>D.3.3 MAX98357A Class-D amp &rarr; ESP32-S3 (I2S_NUM_1).</b> Supply 2.5\u20135.5 V; ~2.4 mA quiescent; "
-    f"peak ~650 mA at 5 V/4 {OHM}; no MCLK. VIN&rarr;5 V (full output), GND&rarr;GND, BCLK&rarr;GPIO15, "
-    "LRC&rarr;GPIO16, DIN&rarr;GPIO17, GAIN NC = 9 dB, SD/mode float = mono. <b>OUT+/OUT&minus; are bridge-tied "
-    "\u2014 never to GND.</b> The device drives its <b>own speaker</b>; its output is <b>never</b> routed back "
-    "into the audio panel.", bodyj))
+    "<b>D.3.3a Isolated audio output stage &rarr; COM3-style audio-panel channel (I2S_NUM_1).</b> "
+    "The installed audio output is a galvanically-isolated, line-level output stage on I2S_NUM_1 "
+    "(GPIO15 BCLK, GPIO16 LRC, GPIO17 DOUT). The output chain is: ESP32-S3 I2S DAC &rarr; "
+    "I2S-to-analog DAC/line driver &rarr; a <b>line-level isolation transformer</b> on the TX output "
+    "line &rarr; line-level output (600 " + OHM + " nominal or per the panel's COM3 input impedance) "
+    "&rarr; dedicated COM3-style audio-panel input channel. The isolation transformer on the TX line "
+    "provides galvanic isolation; a device fault (short, open, supply failure, output-stage failure) "
+    "<b>cannot key, jam, load, or back-feed the panel's other channels or required COM radios</b>. "
+    "Output level should be set conservatively so the injected advisory audio is clearly audible but "
+    "does not mask required ATC/aircraft audio. "
+    "<i>Judgment call / open item:</i> the exact I2S DAC part and isolation transformer type for the "
+    "output stage must be confirmed by the bench engineer. Options include a small I2S DAC IC "
+    "(e.g. PCM5102A class) followed by a 600&Omega;:600&Omega; aviation audio isolation transformer "
+    "(Allen Avionics AGL series or equivalent). The <font name='Mono' size='8'>AOUT_BCLK/LRCLK/DOUT</font> "
+    "macros (GPIO15/16/17) match the former speaker-amp I2S assignments; the firmware I2S_NUM_1 "
+    "driver is retained \u2014 only the physical output hardware changes.", bodyj))
+story.append(Paragraph(
+    "<b>D.3.3b Bench-test speaker output (development/test only \u2014 not the installed output).</b> "
+    "For bench verification of audio content before the isolated output stage is fitted, a "
+    f"MAX98357A I2S Class-D amp may be wired on GPIO15/16/17: supply 2.5\u20135.5 V; ~2.4 mA "
+    f"quiescent; peak ~650 mA at 5 V/4 {OHM}; no MCLK. VIN&rarr;5 V, GND&rarr;GND, "
+    "BCLK&rarr;GPIO15, LRC&rarr;GPIO16, DIN&rarr;GPIO17, GAIN NC = 9 dB, SD/mode float = mono. "
+    "<b>OUT+/OUT&minus; are bridge-tied \u2014 never to GND.</b> "
+    "<b>This bench speaker is not routed to the aircraft audio panel and is NOT the installed "
+    "audio output.</b>", bodyj))
 story.append(Paragraph(
     "<b>D.3.4 Two microSD card slots &rarr; SDMMC 1-bit.</b> 3.3 V cards. Shared bus CLK&rarr;GPIO7, "
     "CMD&rarr;GPIO9 (10 k" + OHM + "&rarr;3V3), DAT0&rarr;GPIO8 (10 k" + OHM + "&rarr;3V3), VDD&rarr;3V3, "
@@ -910,18 +965,20 @@ story.append(PageBreak())
 story.append(Paragraph("D.6 &nbsp; Power budget", h2))
 pwr = [
     ["Rail", "Loads", "Typical", "Peak"],
-    ["<b>3.3 V</b>", "ESP32-S3 (Wi-Fi off) + audio codec + <b>two</b> microSD slots", "~90\u2013170 mA", "~280 mA (SD init / SR burst)"],
-    ["<b>5 V</b>", "MAX98357A output", "a few mA idle", f"<b>~650 mA</b> (5 V/4 {OHM}, loud)"],
+    ["<b>3.3 V</b>", "ESP32-S3 (Wi-Fi off) + audio codec + audio output DAC/line driver + <b>two</b> microSD slots", "~90\u2013180 mA", "~290 mA (SD init / SR burst)"],
+    ["<b>5 V</b>", "Audio output line driver (if used; typically low-current line-level stage)", "a few mA", f"~50 mA (varies by line driver; <b>not the ~650 mA speaker-amp figure</b> \u2014 speaker amp removed)"],
     ["<b>Lamp rail</b>", "up to 2 legend halves", "0 (dark)", "per lamp spec (e.g. 28 V incand.)"],
 ]
 story.append(make_table(pwr, [1.1*inch, 2.9*inch, 1.35*inch, 1.35*inch]))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
-    "The audio-input codec (a few mA\u2013~20 mA) and the second microSD slot add a little to the 3.3 V rail; the "
-    "isolation transformer is passive. Power from <b>USB 5 V &ge; 1 A</b>. Keep a 28 V legend supply separate "
-    "from logic 5 V (grounds common only). Bulk decoupling &ge; 100 &micro;F near the amp VIN plus 0.1 &micro;F "
-    "per device. The audio-panel tap draws <b>no power from the aircraft</b> and is isolated from the device's "
-    "own grounds through the transformer (analog path).", body))
+    "The audio-input codec (a few mA\u2013~20 mA) and the second microSD slot add a little to the 3.3 V rail; "
+    "the isolation transformers (input and output) are passive. Power from <b>USB 5 V &ge; 1 A</b> (the "
+    "removed MAX98357A was the dominant load; the new output stage is much lower current). Keep a 28 V "
+    "legend supply separate from logic 5 V (grounds common only). Bulk decoupling &ge; 100 &micro;F near "
+    "the output line driver (if applicable) plus 0.1 &micro;F per device. The audio-panel tap draws "
+    "<b>no power from the aircraft</b> and is isolated from the device's own grounds through the "
+    "transformer (analog path); the audio-panel output stage is similarly isolated.", body))
 
 story.append(Paragraph("D.7 &nbsp; Processor selection", h2))
 story.append(Paragraph(
@@ -969,23 +1026,26 @@ bom = [
     ["1", "<b>Audio-panel input codec</b>", "I2S codec ADC with line-in: <b>ES8388 / ES7210</b> (need MCLK+I2C) or <b>PCM1808 / CS5343</b> (self-clocking)"],
     ["1", "<b>Audio isolation transformer</b>", f"600 {OHM}:600 {OHM} aviation audio ground-loop isolator (<b>Allen Avionics AGL</b> series)"],
     ["1", "Input network", f"~220\u2013470 {OHM} series resistor + RC anti-alias for the analog tap"],
-    ["1", "I2S amp", "<b>MAX98357A</b> breakout"],
-    ["1", "Speaker", f"4\u20138 {OHM}, &ge; 2 W"],
+    ["1", "<b>Audio output isolation transformer</b>", f"600 {OHM}:600 {OHM} line-level isolation transformer for the TX output stage (e.g. <b>Allen Avionics AGL series</b> or equivalent) \u2014 galvanic barrier on the COM3 output line"],
+    ["1", "<b>Audio output DAC / line driver</b>", "I2S DAC IC (e.g. PCM5102A class) or I2S-in line driver for the COM3 output stage; select based on output impedance and level requirements for the panel's COM3 input"],
+    ["<i>(bench only)</i>", "I2S amp (bench test)", "MAX98357A breakout \u2014 bench-test use only; not installed"],
+    ["<i>(bench only)</i>", "Speaker (bench test)", f"4\u20138 {OHM}, &ge; 2 W \u2014 bench-test use only; not installed"],
     ["<b>2</b>", "microSD card + breakout", "FAT32 \u2014 <b>Config Card</b> (slot 1) + <b>Data Card</b> (slot 2)"],
     ["1", "Annunciator switch", "Applied Avionics VIVISUN/Korry split-legend (or 2 LEDs for bench)"],
     ["2", "Lamp driver", "logic-level N-MOSFET (2N7002/AO3400) or NPN (2N2222)"],
     ["4", "Resistors", f"1 k{OHM} &times;2 (gate), 10 k{OHM} &times;2 (pulldown)"],
     ["2\u20134", "Pull-ups", f"10 k{OHM} on SD CMD/DAT0; codec I2C pull-ups if needed"],
-    ["\u2014", "Caps", "0.1 &micro;F per device/rail, 100 &micro;F bulk near amp"],
+    ["\u2014", "Caps", "0.1 &micro;F per device/rail, 100 &micro;F bulk near output line driver (if applicable)"],
     ["1", "PTT button", "momentary SPST (or use BOOT) \u2014 <b>VOX override</b>"],
     ["(opt.)", "INMP441 MEMS mic", "<b>bench-test input only</b>, not the installed source"],
 ]
 story.append(make_table(bom, [0.55*inch, 1.85*inch, 4.3*inch]))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
-    "Integrated alternative: <b>ESP32-S3-Korvo-2</b> (~$45\u201355) provides codec/amp/SD on-board; use its BSP "
-    "pin map and codec (ES8311/ES7210) init, and repurpose its line-in for the audio-panel feed. A production "
-    "unit adds the second card slot.", small))
+    "Integrated alternative: <b>ESP32-S3-Korvo-2</b> (~$45\u201355) provides codec/SD on-board; use its BSP "
+    "pin map and codec (ES8311/ES7210) init, repurpose its line-in for the audio-panel receive feed, and "
+    "add the isolated COM3 output stage externally (DAC/line driver + output isolation transformer). "
+    "A production unit adds the second card slot.", small))
 
 story.append(Paragraph("D.10 &nbsp; System wiring diagram", h2))
 if os.path.exists(DIAGRAM):
@@ -1014,8 +1074,8 @@ story += part_divider("E", "Enclosure Specification",
 story.append(Paragraph("E.1 &nbsp; Two-piece architecture", h2))
 arch2 = [
     ["Piece", "Contents", "Where", "Why"],
-    ["<b>A. Panel bezel</b>", "Split-legend annunciator switch, speaker + grille, <b>PTT override</b> button", "Front panel / pedestal, on the <b>DZUS rail</b>", "Crew must see/reach it; dark-cockpit annunciator in the normal scan"],
-    ["<b>B. Remote box</b>", "ESP32-S3, audio-input stage (isolation transformer + codec), amp, <b>two microSD card slots</b>, lamp-driver, power conditioning", "Avionics bay / behind-panel, blind", "Keeps heat, the card slots, and wiring out of the panel; close to the audio-panel tap point"],
+    ["<b>A. Panel bezel</b>", "Split-legend annunciator switch, <b>PTT override</b> button", "Front panel / pedestal, on the <b>DZUS rail</b>", "Crew must see/reach it; dark-cockpit annunciator in the normal scan. Speaker grille removed (no onboard speaker in the installed design)."],
+    ["<b>B. Remote processor box</b>", "ESP32-S3, audio-input stage (isolation transformer + codec), <b>audio output stage</b> (DAC/line driver + isolation transformer for COM3 TX output), <b>two microSD card slots</b>, lamp-driver, power conditioning", "Avionics bay / behind-panel, blind", "Keeps heat, the card slots, and wiring out of the panel; close to the audio-panel tap and COM3 output point"],
 ]
 story.append(make_table(arch2, [1.05*inch, 2.5*inch, 1.5*inch, 1.65*inch]))
 story.append(Spacer(1, 6))
@@ -1026,16 +1086,18 @@ story.append(Paragraph(
 story.append(Paragraph("E.2 &nbsp; Piece A \u2014 panel bezel", h2))
 story.append(bullets([
     "<b>DZUS rail mount:</b> fastener pitch <b>3/8 in (9.525 mm)</b>; clearance hole <b>0.255 in (6.48 mm)</b>; "
-    "bezel height a whole multiple of 3/8 in (target 3-unit = <b>28.575 mm</b>, or 4-unit = <b>38.1 mm</b> if "
-    "the grille needs room); standard pedestal width <b>&asymp; 146 mm</b> aluminum (144.45 mm face); backplate "
+    "bezel height a whole multiple of 3/8 in (target 3-unit = <b>28.575 mm</b> \u2014 the speaker cone space is "
+    "freed so the 4-unit height is no longer needed unless a larger switch requires it; confirm against the "
+    "chosen switch datasheet); standard pedestal width <b>&asymp; 146 mm</b> aluminum (144.45 mm face); backplate "
     "<b>1/16 in (1.6 mm)</b> 6061-T6; first/last fastener <b>14.29 mm</b> from each end.",
     "<b>Round-hole variant:</b> fits a standard <b>3-1/8 in (79.4 mm)</b> instrument cutout with four 6-32 "
     "screws on the standard bolt circle, to replace a blanking plate where no DZUS slot exists.",
     "<b>Face layout (top&rarr;bottom):</b> split-legend annunciator switch (cut per the <i>specific</i> switch "
     "datasheet \u2014 typical VIVISUN bezel &asymp; 15&times;15 mm to 19&times;19 mm; top half <font name='Mono' "
     "size='8'>VOICE CHKLST OFF</font> white, bottom <font name='Mono' size='8'>VOICE CHKLST FAULT</font> amber, "
-    "upright when installed); speaker grille (&ge; 40 % open over the cone, offset from the switch); optional "
-    "guarded/recessed PTT.",
+    "upright when installed); optional guarded/recessed PTT. <b>No speaker grille</b> \u2014 the onboard speaker "
+    "is removed; checklist audio plays through the crew headsets via the COM3 output channel. The bezel "
+    "height may be reduced from the prior 4-unit to 3-unit (28.575 mm) since the speaker cone space is freed.",
     "<b>Material/finish:</b> 6061-T6 aluminum 2.0\u20133.0 mm (or ABS/PC for a non-structural demo); <b>matte "
     "black, low-gloss (&le; 10 gloss units)</b> to suppress glare; legend by the switch's internal engraving "
     "(preferred) or laser-etch + white/amber paint-fill; edges chamfered 0.5 mm.",
@@ -1043,25 +1105,33 @@ story.append(bullets([
 
 story.append(Paragraph("E.3 &nbsp; Piece B \u2014 remote processor box", h2))
 story.append(bullets([
-    "<b>Envelope:</b> sized around the ESP32-S3 DevKitC-1 (&asymp; 70&times;26 mm) plus amp, the audio-input "
-    "stage (codec + isolation transformer), <b>two</b> microSD breakouts, and the 2-channel lamp-driver; "
-    "practical outer <b>&asymp; 120 &times; 85 &times; 45 mm</b> (slightly larger than before to fit the "
-    "transformer + second slot). Confirm against the actual stacked board set.",
+    "<b>Envelope:</b> sized around the ESP32-S3 DevKitC-1 (&asymp; 70&times;26 mm) plus the audio-input stage "
+    "(codec + input isolation transformer), the audio output stage (DAC/line driver + output isolation "
+    "transformer), <b>two</b> microSD breakouts, and the 2-channel lamp-driver; practical outer "
+    "<b>&asymp; 120 &times; 85 &times; 45 mm</b> (unchanged \u2014 the output stage is compact; confirm against "
+    "the actual stacked board set with both transformers). Note: without the speaker-amp the box is "
+    "likely lighter and slightly cooler.",
     "<b>Mounting:</b> internal standoffs / M2.5 brass inserts \u2014 boards screwed down, not floating "
-    "(vibration). Keep the audio-input stage and its shielded cabling away from the amp and the switching "
-    "DC-DC; the isolation transformer mounts solidly (it is a magnetic part).",
+    "(vibration). Keep the audio-input and output stages and their shielded cabling away from the "
+    "switching DC-DC; route input and output audio cables separately, both shielded; the isolation "
+    "transformer mounts solidly (it is a magnetic part).",
     "<b>Card slots:</b> <b>two externally-swappable microSD carriers</b>, clearly and distinctly labeled "
     "<font name='Mono' size='8'>CONFIG CARD \u2014 FAT32</font> (slot 1) and <font name='Mono' size='8'>DATA "
     "CARD \u2014 FAT32</font> (slot 2), keyed or spaced so they cannot be confused/swapped; both swappable "
     "without opening the box. The Config Card carrier should accept a <b>write-protect-locked</b> card.",
     "<b>Access &amp; connectors:</b> covered/recessed <b>USB-C</b> service port (bench use only); one keyed, "
     "positive-latching main connector (small MIL-circular or D-sub) carrying SELECT, both legend drives, PTT, "
-    "speaker +/&minus;, power/ground (pinout from <font name='Mono' size='8'>board_pins.h</font>); <b>plus a "
-    "separate, shielded, clearly-labeled <font name='Mono' size='8'>AUDIO IN (ISOLATED, RX ONLY)</font> "
-    "connector</b> for the audio-panel tap \u2014 kept on its own keyed connector so it can never be mis-mated to "
-    "power or the speaker, with the isolation transformer <b>inside</b> the box on the panel side of the codec. "
-    "Accept USB 5 V &ge; 1 A; optional internal <b>28 V&rarr;5 V DC-DC</b> (&ge; 2 A) with TVS + fuse if a 28 V "
-    "bus mock-up is wanted (mark as demo regulator, not DO-160 qualified).",
+    "power/ground (pinout from <font name='Mono' size='8'>board_pins.h</font>); <b>plus a separate, shielded, "
+    "clearly-labeled <font name='Mono' size='8'>AUDIO IN \u2014 ISOLATED, RX ONLY</font> connector</b> for the "
+    "audio-panel tap \u2014 kept on its own keyed connector so it can never be mis-mated to power, with the "
+    "input isolation transformer <b>inside</b> the box on the panel side of the codec; <b>and a separate, "
+    "shielded, clearly-labeled <font name='Mono' size='8'>AUDIO OUT \u2014 ISOLATED (COM3)</font> connector</b> "
+    "for the isolated TX output to the audio-panel COM3-style channel \u2014 on its own keyed connector, "
+    "physically distinct from the input connector, with the output isolation transformer inside the box "
+    "on the panel side of the output stage. The two audio connectors must be clearly distinct "
+    "and cannot be mis-mated. "
+    "Accept USB 5 V &ge; 1 A; optional internal <b>28 V&rarr;5 V DC-DC</b> (&ge; 1 A; speaker-amp is removed) "
+    "with TVS + fuse if a 28 V bus mock-up is wanted (mark as demo regulator, not DO-160 qualified).",
     "<b>Material/EMI:</b> aluminum preferred (doubles as EMI shield + heatsink); if plastic, add a grounded "
     "conductive shield liner/coating; single-point chassis ground stud bonded to the connector shell and "
     "ESP32 ground. Route the audio-in shield per the panel's grounding practice (often <b>grounded only at the "
@@ -1071,8 +1141,10 @@ story.append(bullets([
 story.append(PageBreak())
 story.append(Paragraph("E.4 &nbsp; Audio, thermal, environmental, labeling", h2))
 story.append(bullets([
-    f"<b>Audio:</b> 4\u20138 {OHM}, &ge; 2 W speaker, sealed-back or small rear volume (5\u201315 cm&sup3;); grille "
-    "&ge; 40 % open with acoustic mesh; gasket the speaker to prevent buzz.",
+    "<b>Audio:</b> No onboard speaker in the installed design \u2014 speaker/grille removed from both pieces. "
+    "Checklist read-aloud audio is delivered in-headset via the isolated COM3 output channel. If a "
+    "bench-test speaker output is optionally fitted on the development unit (see D.3.3b), it may be "
+    "wired to a header on the processor box only; no speaker cutout on the panel bezel.",
     "<b>Thermal:</b> ESP32-S3 + ESP-SR is low-power (a few hundred mW) \u2014 <b>no fan</b>. Passive convection "
     "(vent slots low/high) or conduction (thermal pad to the aluminum wall). If sealed, verify internal rise "
     "&lt; 20 &deg;C above 55 &deg;C ambient. DC-DC (if fitted) on its own thermal path.",
@@ -1081,7 +1153,9 @@ story.append(bullets([
     "<b>Labeling:</b> placard <font name='Mono' size='8'>DEMO / TRAINING ONLY \u2014 NOT FOR FLIGHT</font>; box "
     "exterior carries unit name, serial/asset field, the <b>two card-slot labels</b> (<font name='Mono' "
     "size='8'>CONFIG CARD</font> / <font name='Mono' size='8'>DATA CARD</font>, FAT32), the <font name='Mono' "
-    "size='8'>AUDIO IN \u2014 ISOLATED, RX ONLY</font> connector marking, and the USB \u201cbench use only\u201d "
+    "size='8'>AUDIO IN \u2014 ISOLATED, RX ONLY</font> connector marking (receive-only input tap), the "
+    "<font name='Mono' size='8'>AUDIO OUT \u2014 ISOLATED, COM3</font> connector marking (TX output to "
+    "audio-panel COM3 channel), and the USB \u201cbench use only\u201d "
     "note; annunciator legends <font name='Mono' size='8'>VOICE CHKLST OFF</font> (white) / <font name='Mono' "
     "size='8'>VOICE CHKLST FAULT</font> (amber); amber = caution, white = status per AC 25-11B.",
 ]))
@@ -1089,7 +1163,7 @@ story.append(bullets([
 story.append(Paragraph("E.5 &nbsp; Deliverables &amp; open items for the engineer", h2))
 story.append(Paragraph(
     "<b>Deliverables:</b> STEP + native 3D CAD of both pieces (boards + switch modeled in place); "
-    "fully-dimensioned 2D drawings (DZUS pattern, switch cutout from the chosen datasheet, grille, connector "
+    "fully-dimensioned 2D drawings (DZUS pattern, switch cutout from the chosen datasheet, connector "
     "cutouts; GD&amp;T on the switch cutout and DZUS holes); connector pinout mapped to <font name='Mono' "
     "size='8'>board_pins.h</font>; an FDM/SLA printable prototype for fit-check; a mechanical BOM; tolerances "
     "(switch cutout &plusmn;0.1 mm, DZUS holes &plusmn;0.1 mm on the 9.525 mm pitch, general &plusmn;0.25 mm).", body))
@@ -1097,16 +1171,19 @@ story.append(callout(
     "<b>Open items (confirm before CAD):</b> the <b>exact Applied Avionics switch part number</b> \u2014 the single "
     "most critical dimension; nothing finalizes until it is fixed. Also: DZUS slot vs. 3-1/8 in round hole in "
     "the target panel; the <b>audio-panel tap point, level, and grounding</b> for the target installation (sets "
-    "the isolation-transformer + divider design); the <b>codec part</b> for the digital path (sets the "
-    "I2C/MCLK init); whether a 28 V input is wanted; and the speaker model (sets grille open area + rear-volume "
-    "cavity).", "warn"))
+    "the input isolation-transformer + divider design); the <b>codec part</b> for the digital path (sets the "
+    "I2C/MCLK init); the <b>audio-panel COM3-style output channel injection point, impedance, and level "
+    "requirements</b> (sets the output isolation transformer and line driver design \u2014 this is a critical "
+    "open item for the output stage); the <b>output DAC/line driver part</b> (sets the COM3 output stage "
+    "component selection); whether a 28 V input is wanted. No speaker \u2014 the speaker is removed.", "warn"))
 story.append(Spacer(1, 6))
 story.append(Paragraph(
     "<b>Reference dimensions:</b> DZUS pitch 9.525 mm &middot; DZUS hole 6.48 mm &middot; backplate 1.6 mm "
     "&middot; first fastener offset 14.29 mm &middot; pedestal panel width &asymp; 146 mm &middot; round "
     "instrument hole 79.4 mm &middot; remote box &asymp; 120 &times; 85 &times; 45 mm &middot; two microSD slots "
-    "&middot; isolated RX-only audio-in connector &middot; speaker 4\u20138 "
-    + OHM + " &ge; 2 W.", small))
+    "&middot; isolated <font name='Mono' size='8'>AUDIO IN (RX ONLY)</font> connector (input tap) "
+    "&middot; isolated <font name='Mono' size='8'>AUDIO OUT (COM3)</font> connector (TX output to "
+    "audio-panel COM3 channel) &middot; no onboard speaker in the installed design.", small))
 
 # ================= PART F =================
 story.append(PageBreak())
@@ -1138,8 +1215,8 @@ hw_src = [
     ("TI PCM1808 stereo audio ADC (self-clocking I2S input)", "https://www.ti.com/lit/ds/symlink/pcm1808.pdf"),
     ("Espressif ESP-SR AFE / VAD (voice-activity detection for VOX)", "https://github.com/espressif/esp-sr"),
     ("INMP441 microphone datasheet (bench-test option only)", "https://www.farnell.com/datasheets/1824785.pdf"),
-    ("MAX98357A amplifier datasheet (Analog Devices)", "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf"),
-    ("MAX98357A breakout guide (Adafruit)", "https://cdn-learn.adafruit.com/downloads/pdf/adafruit-max98357-i2s-class-d-mono-amp.pdf"),
+    ("MAX98357A amplifier datasheet (Analog Devices) (bench-test amp only)", "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf"),
+    ("MAX98357A breakout guide (Adafruit) (bench-test amp only)", "https://cdn-learn.adafruit.com/downloads/pdf/adafruit-max98357-i2s-class-d-mono-amp.pdf"),
     ("ESP32-S3 GPIO drive current discussion", "https://esp32.com/viewtopic.php?t=20097"),
     ("microSD operating current", "https://forum.arduino.cc/t/sd-card-how-to-reduce-the-power-consumption/145975"),
     ("Applied Avionics VIVISUN lighted pushbutton switches", "https://www.appliedavionics.com/led-lighted-pushbutton-switches.html"),

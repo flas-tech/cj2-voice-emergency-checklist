@@ -25,7 +25,7 @@ A standalone, **offline** electronic device that audibly reads aircraft checklis
 | # | Feature | Role in claims |
 |---|---------|----------------|
 | 1 | Fully offline, deterministic, bounded-grammar speech recognition on an ESP32-S3-class MCU (no cloud, no network) | Supporting (moderate prior art) |
-| 2 | **Receive-only, galvanically-isolated tap of the aircraft audio panel** as the ASR source (cannot transmit/key/back-feed) | **Lead novelty** |
+| 2 | **Galvanically-isolated receive-only INPUT tap of the aircraft audio panel** as the ASR source (cannot transmit/key/back-feed via this path); PLUS (revised) a **separate, galvanically-isolated dedicated OUTPUT channel** (COM3-style aux channel) for checklist read-aloud delivery to crew headsets — the two forming a **dual-isolated-channel architecture** (electrically separate, independent isolation barriers). The absolute "cannot inject into the panel" claim is narrowed to the INPUT tap only; the OUTPUT is an intentional, isolated, advisory audio injection into a dedicated aux channel. | **Lead novelty** (receive-only INPUT tap is established; dedicated isolated OUTPUT + dual-channel architecture is **new** and prior-art search not yet run for output feature — see Section 7) |
 | 3 | VOX-primary hands-free operation with PTT retained as manual override | Supporting (moderate prior art) |
 | 4 | **Dual-removable-card architecture** — Config card (installation authority) + Data card (content authority) with cross-card aircraft-ID consistency check | **Lead novelty** |
 | 5 | **Fail-safe "revert-to-unopened" lockout** + dark-cockpit amber fault annunciation (never shows partial/stale/mismatched content) | **Lead novelty** |
@@ -57,12 +57,14 @@ DEMO/TRAINING ONLY positioning is maintained; the device is advisory, not a requ
 **Microkit Audio Checklist** (landingheight.com, ~$435, NORSEE-certified) — button-controlled, **no voice recognition**. Validates the NORSEE path and the market, but does not anticipate your voice/audio-panel/dual-card claims.
 
 ### White-space conclusion
-- **No live patent** was found for a **receive-only galvanically-isolated audio-panel tap** used as the ASR input source (Feature 2).
-- **None** found for the **dual-card Config/Data split with cross-card aircraft-ID consistency** (Feature 4).
-- **None** found specifically for the **revert-to-unopened complete fault lockout + dark-cockpit annunciation** (Feature 5).
+- **No live patent** was found for a **receive-only galvanically-isolated audio-panel tap** used as the ASR input source (Feature 2, INPUT tap). This white-space finding stands.
+- **No prior-art search has been run** for the **dedicated isolated audio-panel OUTPUT channel** (COM3-style advisory audio injection) component of Feature 2. **The output feature is outside the original search scope.** Freedom-to-operate and patentability for this specific feature must be assessed by the attorney with an additional search before relying on any white-space conclusion for the output path. See Section 7.
+- **The dual-isolated-channel architecture** (isolated INPUT tap + isolated dedicated OUTPUT channel, electrically separate) is a candidate new novelty angle. No prior-art search has been conducted for this combination specifically.
+- **None** found for the **dual-card Config/Data split with cross-card aircraft-ID consistency** (Feature 4). This white-space finding stands.
+- **None** found specifically for the **revert-to-unopened complete fault lockout + dark-cockpit annunciation** (Feature 5). This white-space finding stands.
 - Features 1 and 3 have moderate prior-art density → **claim them only as part of the combination**, never standalone.
 
-**Patentability assessment:** Favorable for a *combination* claim built around Features 2 + 4 + 5. Low/unfavorable for any broad "voice-advances-checklist" claim. Strategy: claim narrow and specific; the architecture is where the novelty and non-obviousness live.
+**Patentability assessment:** Favorable for a *combination* claim built around Features 2 + 4 + 5. Low/unfavorable for any broad "voice-advances-checklist" claim. The new OUTPUT channel and dual-isolated-channel architecture may add independent novelty, but require an additional prior-art search. Strategy: claim narrow and specific; the architecture is where the novelty and non-obviousness live.
 
 ---
 
@@ -123,6 +125,7 @@ File the **provisional first** (priority is time-sensitive and prior art accrues
 - The prior-art search is thorough but **not exhaustive** — a professional patentability search (and especially a freedom-to-operate analysis if you plan to sell) goes deeper, including foreign and non-patent literature.
 - The **broad "voice checklist" idea is not patentable** for you — it's well-trodden. Your protectable invention is the specific combination. Keep claims narrow and architecture-focused.
 - Trademark screening covers USPTO federal marks only; **common-law and state marks** still need checking before you commit to a name and spend on branding.
+- **Architecture change after original prior-art search (important — act before nonprovisional filing).** After the original prior-art search was conducted, the device architecture changed: the onboard speaker/amplifier was removed and replaced with a **dedicated, galvanically-isolated audio OUTPUT channel** (COM3-style aux channel) that injects checklist read-aloud audio into the aircraft audio panel. This output feature was **not in scope** for the original prior-art search. Before relying on the white-space conclusions for the Feature 2 output path, or before filing the nonprovisional, the attorney must refresh the search to cover: intercom/audio-panel audio injection; cockpit advisory audio injection into COM or aux channels; and any existing patents on injecting audio into aircraft audio panels via isolated output stages. The receive-tap (INPUT) white-space findings are unaffected and stand. The potential novelty of the dual-isolated-channel architecture (isolated INPUT tap + isolated dedicated advisory-audio OUTPUT, electrically separated) should also be evaluated in the refreshed search.
 
 ---
 

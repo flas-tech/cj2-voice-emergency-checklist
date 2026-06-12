@@ -1,11 +1,17 @@
 /*
  * board_pins.h — GPIO assignments.
  *
- * DEFAULT: generic ESP32-S3 + INMP441 I2S mic + MAX98357A I2S amp.
- * For the ESP32-S3-Korvo-2, the mics/codec/amp are on-board; use the
- * Korvo-2 BSP pin map instead (see README) and the ES8311 codec path.
+ * INSTALLED DESIGN: crew audio is RECEIVE-ONLY off the aircraft audio panel
+ * (isolated I2S codec ADC / analog line tap on I2S_NUM_0 = audio INPUT), and
+ * checklist read-aloud audio is sent OUT through a dedicated, galvanically-
+ * isolated COM3-style audio-panel channel (line driver / DAC on I2S_NUM_1 =
+ * audio OUTPUT). These are two electrically separate, isolated channels.
  *
- * Pick any free GPIOs; just keep mic and speaker on separate I2S ports.
+ * The onboard MAX98357A speaker-amp and an INMP441 mic are BENCH-TEST ONLY
+ * (development), never the installed audio source/sink. For the ESP32-S3-
+ * Korvo-2, the codec is on-board; use the Korvo-2 BSP pin map (see README).
+ *
+ * Pick any free GPIOs; keep the audio INPUT and OUTPUT on separate I2S ports.
  */
 #pragma once
 
@@ -64,14 +70,18 @@
 #define SD_CMD_GPIO         9
 #define SD_D0_GPIO          8
 
-/* ---- Microphone: INMP441 / ICS-43434 on I2S_NUM_0 ---- */
-#define MIC_BCLK_GPIO       4
-#define MIC_LRCLK_GPIO      5      /* WS */
-#define MIC_DIN_GPIO        6      /* SD from mic */
-/* INMP441 L/R pin tied to GND => left channel. */
+/* ---- Audio INPUT (crew speech): isolated I2S codec ADC / analog line tap
+ *      off the aircraft audio panel, on I2S_NUM_0. RECEIVE-ONLY.
+ *      (Bench-test: an INMP441 / ICS-43434 mic may be wired here instead.) ---- */
+#define AIN_BCLK_GPIO       4
+#define AIN_LRCLK_GPIO      5      /* WS */
+#define AIN_DIN_GPIO        6      /* SD from codec ADC / mic */
+/* Analog-tap option uses the codec line input; source selected per Config Card. */
 
-/* ---- Speaker: MAX98357A on I2S_NUM_1 ---- */
-#define SPK_BCLK_GPIO       15
-#define SPK_LRCLK_GPIO      16     /* LRC */
-#define SPK_DOUT_GPIO       17     /* DIN on the amp (moved off GPIO7 to free SD bus) */
-/* MAX98357A: SD pin floating = mono (L+R)/2; GAIN pin sets volume. */
+/* ---- Audio OUTPUT (checklist read-aloud): isolated line driver / DAC on
+ *      I2S_NUM_1, feeding a galvanically-isolated COM3-style audio-panel
+ *      channel. The output stage cannot key/jam/back-feed required COM.
+ *      (Bench-test: a MAX98357A speaker-amp may be substituted here.) ---- */
+#define AOUT_BCLK_GPIO      15
+#define AOUT_LRCLK_GPIO     16     /* LRC */
+#define AOUT_DOUT_GPIO      17     /* DIN on the line driver / DAC */

@@ -214,9 +214,12 @@ ov = [
     ["MCU", "<b>ESP32-S3</b> (dual-core LX7 @ 240 MHz) \u2014 <b>PSRAM required</b> by ESP-SR"],
     ["Recommended module", "ESP32-S3-WROOM-1 <b>N16R8</b> (16 MB flash, 8 MB octal PSRAM)"],
     ["Speech stack", "Espressif <b>ESP-SR</b>: AFE (NS/VAD) \u2192 WakeNet \u201cHi ESP\u201d \u2192 MultiNet English"],
-    ["Mic input", "I2S MEMS microphone on <b>I2S_NUM_0</b>"],
-    ["Audio output", "I2S Class-D amplifier on <b>I2S_NUM_1</b> \u2192 4\u20138 \u2126 speaker"],
-    ["Config storage", "<b>microSD</b> (SDMMC 1-bit), FAT32, one folder per aircraft"],
+    ["Audio input", "Galvanically-isolated audio-panel tap on <b>I2S_NUM_0</b> (codec ADC / analog line tap, selectable per install). <b>Onboard INMP441 mic = bench-test only.</b>"],
+    ["Audio output", "Isolated line driver / DAC (<b>PCM5102A-class</b>) on <b>I2S_NUM_1</b> \u2192 output isolation transformer \u2192 line-level out to dedicated <b>COM3-style audio-panel channel</b>. <b>Onboard MAX98357A speaker-amp = bench-test only; no onboard speaker in the installed build.</b>"],
+    ["Config storage", "<b>Two microSD slots</b> \u2014 <b>Config Card</b> (slot 1, write-protected) + <b>Data Card</b> (slot 2), FAT32"],
+    ["Audio I/O posture", "Receive-only on the INPUT tap (I2S0) + galvanically-isolated OUTPUT into a dedicated COM3-style channel (I2S1). NOT a COM-radio transceiver or control/command interface."],
+    ["Install input source", "Aircraft audio panel (analog isolated line tap OR buffered digital I2S codec ADC). INMP441 MEMS mic = bench-test development only, not the installed source."],
+    ["Install output", "Isolated line-level TX to dedicated COM3-style audio-panel channel via isolation transformer. MAX98357A speaker-amp + 4\u20138 \u2126 speaker = bench-test only."],
     ["Annunciation", "Applied Avionics split-legend switch (dark-cockpit, FAA AC 25-11)"],
     ["Logic level", "<b>3.3 V</b> (ESP32-S3 is <b>not</b> 5 V tolerant on GPIO)"],
 ]
@@ -225,7 +228,7 @@ story.append(Spacer(1, 8))
 story.append(Paragraph("Two build paths are supported:", body))
 story.append(ListFlowable([
     ListItem(Paragraph("<b>Integrated:</b> ESP32-S3-Korvo-2 dev board (on-board dual mic, ES8311 codec, NS4150 amp, microSD slot). Least wiring; best mic performance.", body), leftIndent=6),
-    ListItem(Paragraph("<b>DIY (this document):</b> ESP32-S3 DevKitC-1 N16R8 + INMP441 mic + MAX98357A amp + microSD breakout + the annunciator switch.", body), leftIndent=6),
+    ListItem(Paragraph("<b>DIY (this document):</b> ESP32-S3 DevKitC-1 N16R8 + audio-panel input stage (isolation transformer + I2S codec ADC for analog, or buffered receive-only I2S for digital; INMP441 bench-only) + isolated audio output stage (I2S DAC e.g. PCM5102A-class + output isolation transformer \u2192 COM3-style channel; MAX98357A speaker-amp bench-only) + <b>two</b> microSD breakouts (Config Card slot 1 + Data Card slot 2) + the annunciator switch.", body), leftIndent=6),
 ], bulletType="bullet", start="circle", leftIndent=14))
 
 # ============ 2. MASTER PIN MAP ============
@@ -239,15 +242,17 @@ pin = [
     ["Legend OFF (white)", "LEGEND_OFF_GPIO", "21", "out", "drives top legend half (via driver)"],
     ["Legend FAULT (amber)", "LEGEND_FAULT_GPIO", "14", "out", "drives bottom legend half (via driver)"],
     ["Status LED", "STATUS_LED_GPIO", "48", "out", "on-board RGB on most S3 devkits"],
-    ["Mic bit clock", "MIC_BCLK_GPIO", "4", "out", "I2S0 BCLK \u2192 mic SCK"],
-    ["Mic word select", "MIC_LRCLK_GPIO", "5", "out", "I2S0 WS \u2192 mic WS"],
-    ["Mic data in", "MIC_DIN_GPIO", "6", "in", "mic SD \u2192 ESP DIN"],
+    ["Audio-in bit clock", "AIN_BCLK_GPIO", "4", "out", "I2S0 BCLK \u2192 audio-panel input codec ADC / tap (RX)"],
+    ["Audio-in word select", "AIN_LRCLK_GPIO", "5", "out", "I2S0 WS \u2192 audio-panel input codec ADC / tap (RX)"],
+    ["Audio-in data", "AIN_DIN_GPIO", "6", "in", "I2S0 \u2192 audio-panel input codec ADC / tap (RX)"],
     ["SD clock", "SD_CLK_GPIO", "7", "out", "SDMMC CLK"],
     ["SD command", "SD_CMD_GPIO", "9", "i/o", "SDMMC CMD (needs pull-up)"],
     ["SD data 0", "SD_D0_GPIO", "8", "i/o", "SDMMC DAT0 (needs pull-up)"],
-    ["Speaker bit clock", "SPK_BCLK_GPIO", "15", "out", "I2S1 BCLK \u2192 amp BCLK"],
-    ["Speaker word select", "SPK_LRCLK_GPIO", "16", "out", "I2S1 WS \u2192 amp LRC"],
-    ["Speaker data out", "SPK_DOUT_GPIO", "17", "out", "I2S1 DOUT \u2192 amp DIN"],
+    ["Audio-out bit clock", "AOUT_BCLK_GPIO", "15", "out", "I2S1 BCLK \u2192 isolated audio-out (COM3) line driver/DAC"],
+    ["Audio-out word select", "AOUT_LRCLK_GPIO", "16", "out", "I2S1 WS \u2192 isolated audio-out (COM3) line driver/DAC"],
+    ["Audio-out data", "AOUT_DOUT_GPIO", "17", "out", "I2S1 DOUT \u2192 isolated audio-out (COM3) line driver/DAC \u2192 isolation transformer \u2192 COM3-style audio-panel channel"],
+    ["Config-card detect", "SD_CFG_CD_GPIO", "47", "in (PU)", "slot-1 card-detect (Config Card)"],
+    ["Data-card detect", "SD_DAT_CD_GPIO", "38", "in (PU)", "slot-2 card-detect (Data Card)"],
 ]
 fs = {}
 for i in range(1, len(pin)):
@@ -273,15 +278,40 @@ story.append(Paragraph("GPIO0 is used here only as the BOOT/PTT button (its natu
 story.append(PageBreak())
 story.append(Paragraph("3 &nbsp; Per-Device Wiring", h1))
 
-story.append(Paragraph("3.1 &nbsp; INMP441 MEMS Microphone \u2192 ESP32-S3 (I2S_NUM_0)", h3))
-story.append(Paragraph("Supply <b>1.8\u20133.3 V</b> (never 5 V), ~2.2\u20132.5 mA at 3.3 V. " + A("INMP441 datasheet", "https://www.farnell.com/datasheets/1824785.pdf") + ".", body))
+story.append(Paragraph("3.1 &nbsp; Audio-Panel Input Stage \u2192 ESP32-S3 (I2S_NUM_0)", h3))
+story.append(Paragraph(
+    "The installed input is a <b>galvanically-isolated tap of the aircraft audio panel</b>, not an onboard microphone. "
+    "The source is selected by the Config Card: either (a) an <b>analog isolated line tap</b> "
+    "(600 \u2126 aviation audio isolation transformer, e.g. Allen Avionics AGL series) "
+    "feeding an I2S codec ADC, or (b) a <b>buffered receive-only digital I2S feed</b> from the same codec ADC. "
+    "I2S bus: <b>AIN_BCLK_GPIO (GPIO4) / AIN_LRCLK_GPIO (GPIO5) / AIN_DIN_GPIO (GPIO6)</b>. "
+    "This gives already-mixed crew audio from the panel, avoiding cockpit acoustic noise entirely.", bodyj))
+story.append(Spacer(1,4))
+story.append(ListFlowable([
+    ListItem(Paragraph(
+        "<b>Analog path:</b> audio-panel receive tap \u2192 600 \u2126:600 \u2126 isolation transformer (Allen Avionics AGL or equivalent) "
+        "\u2192 I2S codec ADC \u2192 GPIO4/5/6 (I2S_NUM_0). "
+        "The isolation transformer provides galvanic isolation; no signal path back toward the panel.", small), leftIndent=6),
+    ListItem(Paragraph(
+        "<b>Digital path:</b> buffered receive-only I2S/line feed from codec ADC \u2192 GPIO4/5/6 (I2S_NUM_0). "
+        "There is <b>no I2S output toward the audio panel on this bus</b> \u2014 it is receive-only.", small), leftIndent=6),
+    ListItem(Paragraph(
+        "<b>Bench-test only (not the installed input):</b> INMP441 MEMS mic (1.8\u20133.3 V, ~2.2\u20132.5 mA at 3.3 V) "
+        "can be wired to GPIO4/5/6 on the bench for audio-content verification before the isolated input stage is fitted. "
+        + A("INMP441 datasheet", "https://www.farnell.com/datasheets/1824785.pdf") + ".", small), leftIndent=6),
+], bulletType="bullet", leftIndent=14))
+# Bench-test INMP441 wiring sub-table (clearly labeled bench-only)
+story.append(Paragraph("3.1a &nbsp; Bench-test input: INMP441 wiring (GPIO4/5/6) \u2014 bench verification only, not the installed source", h3))
+story.append(callout(
+    "BENCH-TEST ONLY \u2014 the INMP441 mic is used for bench audio-content verification only. "
+    "The installed configuration uses the isolated audio-panel tap (\u00a73.1 above) on the same GPIO4/5/6 bus.", "warn"))
 mic = [
     ["INMP441 pin", "Connects to", "Net"],
     ["VDD", "ESP <b>3V3</b>", "3.3 V"],
     ["GND", "ESP <b>GND</b>", "GND"],
-    ["SCK", "ESP <b>GPIO4</b> (BCLK)", "mic I2S"],
-    ["WS", "ESP <b>GPIO5</b> (WS)", "mic I2S"],
-    ["SD", "ESP <b>GPIO6</b> (DIN)", "mic I2S"],
+    ["SCK", "ESP <b>GPIO4</b> (AIN_BCLK)", "audio-in I2S"],
+    ["WS", "ESP <b>GPIO5</b> (AIN_LRCLK)", "audio-in I2S"],
+    ["SD", "ESP <b>GPIO6</b> (AIN_DIN)", "audio-in I2S"],
     ["L/R", "<b>GND</b>", "selects <b>left</b> channel"],
 ]
 story.append(make_table(mic, [1.5*inch, 3.0*inch, 2.2*inch]))
@@ -292,18 +322,48 @@ story.append(ListFlowable([
     ListItem(Paragraph("Do <b>not</b> clock WS/SCK with VDD unpowered (stresses ESD diodes).", small), leftIndent=6),
 ], bulletType="bullet", leftIndent=14))
 
-story.append(Paragraph("3.2 &nbsp; MAX98357A Class-D Amplifier \u2192 ESP32-S3 (I2S_NUM_1)", h3))
-story.append(Paragraph("Supply <b>2.5\u20135.5 V</b>; 2.4 mA quiescent; peak speaker current up to <b>~650 mA</b> at 5 V/4 \u2126. No MCLK required. " + A("Analog Devices datasheet", "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf") + ", " + A("Adafruit guide", "https://cdn-learn.adafruit.com/downloads/pdf/adafruit-max98357-i2s-class-d-mono-amp.pdf") + ".", body))
+story.append(Paragraph("3.2 &nbsp; Isolated Audio Output Stage \u2192 COM3-style audio-panel channel (I2S_NUM_1) \u2014 Installed Configuration", h3))
+story.append(Paragraph(
+    "<b>D.3.3a (installed output).</b> Checklist read-aloud audio is sent out through a dedicated, galvanically-isolated "
+    "line-level output stage on <b>I2S_NUM_1</b> (AOUT_BCLK_GPIO GPIO15, AOUT_LRCLK_GPIO GPIO16, AOUT_DOUT_GPIO GPIO17). "
+    "The I2S DAC (e.g. <b>PCM5102A-class</b>) drives a <b>600 \u2126:600 \u2126 line-level isolation transformer</b> "
+    "(e.g. Allen Avionics AGL series or equivalent) on the TX output line, then line-level output "
+    "to a dedicated <b>COM3-style audio-panel input channel</b>. The crew hears checklist items in-headset via that channel. "
+    "The isolation transformer on the TX line provides a galvanic barrier; a device fault cannot key, jam, load, or back-feed "
+    "the panel\u2019s other channels or required COM radios. "
+    "<b>The onboard speaker/amplifier is removed in the installed configuration.</b>", bodyj))
+story.append(Spacer(1,4))
+story.append(ListFlowable([
+    ListItem(Paragraph(
+        "<i>Judgment call / open item:</i> the exact I2S DAC part and isolation transformer type must be confirmed by the bench engineer. "
+        "Options include a PCM5102A-class DAC IC followed by a 600\u2126:600\u2126 aviation audio isolation transformer. "
+        "AOUT_BCLK/LRCLK/DOUT macros (GPIO15/16/17) share pin assignments with the former speaker-amp; "
+        "the installed stage replaces the bench speaker-amp at those pins.", small), leftIndent=6),
+    ListItem(Paragraph(
+        "Supply: a few mA for the line-level output stage (not the ~650 mA peak of the speaker-amp, which is removed). "
+        "See power budget (\u00a75) for updated 5 V rail loading.", small), leftIndent=6),
+], bulletType="bullet", leftIndent=14))
+
+story.append(Paragraph("3.2a &nbsp; Bench-test speaker output (MAX98357A) \u2014 bench verification only, not the installed output", h3))
+story.append(callout(
+    "BENCH-TEST ONLY (D.3.3b) \u2014 the MAX98357A Class-D amplifier and speaker are used for bench verification of audio content "
+    "before the isolated output stage is fitted. They are <b>not the installed output</b>. The installed output is the isolated "
+    "line driver / DAC stage (\u00a73.2 above) feeding the COM3-style audio-panel channel.", "warn"))
+story.append(Paragraph(
+    "Supply <b>2.5\u20135.5 V</b>; 2.4 mA quiescent; peak speaker current up to <b>~650 mA</b> at 5 V/4 \u2126 (bench figure only \u2014 "
+    "not relevant to the installed output stage). No MCLK required. "
+    + A("Analog Devices datasheet", "https://www.analog.com/media/en/technical-documentation/data-sheets/max98357a-max98357b.pdf") 
+    + ", " + A("Adafruit guide", "https://cdn-learn.adafruit.com/downloads/pdf/adafruit-max98357-i2s-class-d-mono-amp.pdf") + ".", body))
 amp = [
-    ["MAX98357A pin", "Connects to", "Net"],
+    ["MAX98357A pin", "Connects to (bench only)", "Net"],
     ["VIN", "<b>5 V</b> (USB/VBUS) for full output (3.3 V also works, less power)", "5 V"],
     ["GND", "ESP <b>GND</b>", "GND"],
-    ["BCLK", "ESP <b>GPIO15</b>", "spk I2S"],
-    ["LRC", "ESP <b>GPIO16</b>", "spk I2S"],
-    ["DIN", "ESP <b>GPIO17</b>", "spk I2S"],
+    ["BCLK", "ESP <b>GPIO15</b> (AOUT_BCLK)", "audio-out I2S"],
+    ["LRC", "ESP <b>GPIO16</b> (AOUT_LRCLK)", "audio-out I2S"],
+    ["DIN", "ESP <b>GPIO17</b> (AOUT_DOUT)", "audio-out I2S"],
     ["GAIN", "<b>NC</b> = 9 dB (default)", "\u2014"],
     ["SD (mode)", "<b>float</b> = mono (L+R)/2", "\u2014"],
-    ["OUT+/OUT\u2212", "speaker (4\u20138 \u2126) \u2014 bridge-tied, no ground ref", "\u2014"],
+    ["OUT+/OUT\u2212", "bench speaker (4\u20138 \u2126) \u2014 bridge-tied, no ground ref", "\u2014"],
 ]
 story.append(make_table(amp, [1.5*inch, 3.9*inch, 1.3*inch]))
 story.append(Spacer(1,4))
@@ -313,8 +373,18 @@ story.append(ListFlowable([
     ListItem(Paragraph("The OUT pins are <b>bridge-tied</b> \u2014 never connect either to GND.", small), leftIndent=6),
 ], bulletType="bullet", leftIndent=14))
 
-story.append(Paragraph("3.3 &nbsp; microSD Card \u2192 ESP32-S3 (SDMMC, 1-bit)", h3))
-story.append(Paragraph("<b>3.3 V</b> card. Sleep ~100\u2013200 \u00b5A; init/read peaks <b>50\u2013200 mA</b>. " + A("SD current notes", "https://forum.arduino.cc/t/sd-card-how-to-reduce-the-power-consumption/145975") + ".", body))
+story.append(Paragraph("3.3 &nbsp; microSD Cards \u2192 ESP32-S3 (SDMMC, 1-bit) \u2014 Two-Card Model", h3))
+story.append(Paragraph(
+    "Two separate microSD slots: <b>slot 1 = Config Card</b> (write-protected per installation; "
+    "mounts at <font name='Mono' size='8'>/sdcard-config</font>) and <b>slot 2 = Data Card</b> "
+    "(checklist library + audio; mounts at <font name='Mono' size='8'>/sdcard-data</font>). "
+    "Both <b>3.3 V</b>, sleep ~100\u2013200 \u00b5A; init/read peaks <b>50\u2013200 mA</b>. "
+    + A("SD current notes", "https://forum.arduino.cc/t/sd-card-how-to-reduce-the-power-consumption/145975") + ".", body))
+story.append(Paragraph(
+    "The firmware boots Config Card first: reads <font name='Mono' size='8'>/sdcard-config/config.json</font>, "
+    "inits the audio source and VOX parameters, then loads the matching aircraft folder from the Data Card. "
+    "Absent or unreadable Config Card = <font name='Mono' size='8'>FAULT_NO_CONFIG</font>; "
+    "absent Data Card = <font name='Mono' size='8'>FAULT_NO_CARD</font>. Both slots are front-accessible.", small))
 sd = [
     ["SD signal", "ESP32-S3", "Net", "Pull-up"],
     ["CLK", "<b>GPIO7</b>", "microSD", "\u2014"],
@@ -322,12 +392,15 @@ sd = [
     ["DAT0", "<b>GPIO8</b>", "microSD", "<b>10 k\u2126 \u2192 3V3</b>"],
     ["VDD", "<b>3V3</b>", "3.3 V", "\u2014"],
     ["VSS", "<b>GND</b>", "GND", "\u2014"],
+    ["CD (slot 1 Config Card)", "<b>GPIO47</b> (SD_CFG_CD_GPIO)", "card-detect", "10 k\u2126 \u2192 3V3 (PU)"],
+    ["CD (slot 2 Data Card)", "<b>GPIO38</b> (SD_DAT_CD_GPIO)", "card-detect", "10 k\u2126 \u2192 3V3 (PU)"],
 ]
-story.append(make_table(sd, [1.4*inch, 1.6*inch, 1.6*inch, 2.1*inch]))
+story.append(make_table(sd, [2.0*inch, 2.0*inch, 1.2*inch, 1.5*inch]))
 story.append(Spacer(1,4))
 story.append(ListFlowable([
     ListItem(Paragraph("1-bit mode uses only DAT0 (DAT1\u20133 unused). For 4-bit, add DAT1/2/3 with pull-ups.", small), leftIndent=6),
-    ListItem(Paragraph("Keep CLK trace short; SDMMC runs at MHz clocks. Format <b>FAT32</b>.", small), leftIndent=6),
+    ListItem(Paragraph("Keep CLK trace short; SDMMC runs at MHz clocks. Format both cards <b>FAT32</b>.", small), leftIndent=6),
+    ListItem(Paragraph("Distribute the Config Card write-protected in production. To reconfigure an aircraft, swap only the Config Card; to update checklists, swap only the Data Card.", small), leftIndent=6),
 ], bulletType="bullet", leftIndent=14))
 
 story.append(Paragraph("3.4 &nbsp; Discrete Inputs", h3))
@@ -386,16 +459,16 @@ story.append(PageBreak())
 story.append(Paragraph("5 &nbsp; Power Budget & Supply", h1))
 pw = [
     ["Rail", "Loads", "Typical", "Peak"],
-    ["<b>3.3 V</b>", "ESP32-S3 + Wi-Fi off + mic + microSD", "~80\u2013150 mA", "~250 mA (SD init / SR burst)"],
-    ["<b>5 V</b>", "MAX98357A speaker output", "a few mA idle", "<b>~650 mA</b> (5 V/4 \u2126, loud)"],
+    ["<b>3.3 V</b>", "ESP32-S3 + Wi-Fi off + audio-panel input stage (codec) + two microSD", "~80\u2013150 mA", "~250 mA (SD init / SR burst)"],
+    ["<b>5 V</b>", "Audio output line driver / isolated output stage (installed) \u2014 a few mA line-level. \n<i>Bench only: MAX98357A peaks ~650 mA at 5 V/4 \u2126 \u2014 not the installed figure.</i>", "a few mA", "~50 mA (installed output stage; \u226A bench amp figure)"],
     ["<b>Lamp rail</b>", "up to 2 legend halves", "0 (dark)", "per lamp spec (e.g. 28 V incand.)"],
 ]
 story.append(make_table(pw, [1.0*inch, 2.7*inch, 1.4*inch, 1.6*inch]))
 story.append(Spacer(1,6))
 story.append(ListFlowable([
-    ListItem(Paragraph("Power the board from <b>USB 5 V capable of \u2265 1 A</b> (the on-board 3.3 V LDO feeds the S3, mic, and SD). Reserve headroom for the amp's peak.", body), leftIndent=6),
+    ListItem(Paragraph("Power from <b>USB 5 V capable of \u2265 1 A</b> (the on-board 3.3 V LDO feeds the S3, codec, and SD). The removed MAX98357A was the dominant 5 V load; the installed isolated output stage is much lower current.", body), leftIndent=6),
     ListItem(Paragraph("Keep the <b>legend-lamp supply separate</b> from the logic 5 V if using 28 V lamps; only the grounds are common.", body), leftIndent=6),
-    ListItem(Paragraph("Add bulk decoupling: <b>\u2265 100 \u00b5F</b> near the amp VIN plus 0.1 \u00b5F per device.", body), leftIndent=6),
+    ListItem(Paragraph("Add bulk decoupling: <b>\u2265 100 \u00b5F</b> near the 5 V rail plus 0.1 \u00b5F per device. Isolation transformers (input and output paths) are passive.", body), leftIndent=6),
 ], bulletType="bullet", leftIndent=14))
 
 # ============ 6. BOM ============
@@ -403,20 +476,22 @@ story.append(Paragraph("6 &nbsp; Bill of Materials (DIY build)", h1))
 bom = [
     ["Qty", "Part", "Spec / example", "Approx."],
     ["1", "ESP32-S3 DevKit", "DevKitC-1 <b>N16R8</b> (PSRAM!)", "$12\u201318"],
-    ["1", "I2S MEMS mic", "<b>INMP441</b> or ICS-43434 breakout", "$4\u20136"],
-    ["1", "I2S amp", "<b>MAX98357A</b> breakout", "$4\u20137"],
-    ["1", "Speaker", "4\u20138 \u2126, \u2265 2 W", "$2\u20135"],
-    ["1", "microSD card + breakout", "FAT32; Korvo-2 has on-board slot", "$5\u20138"],
+    ["1", "Audio input stage", "600 \u2126:600 \u2126 aviation audio isolation transformer (e.g. Allen Avionics AGL series) + I2S codec ADC. Selectable analog/digital per install.", "varies"],
+    ["1", "Audio output stage (installed)", "I2S DAC (e.g. <b>PCM5102A-class</b>) + 600 \u2126:600 \u2126 line-level isolation transformer \u2192 COM3-style audio-panel channel. No onboard speaker.", "varies"],
+    ["2", "microSD card + breakout", "FAT32 \u2014 <b>Config Card</b> (slot 1, write-protected) + <b>Data Card</b> (slot 2)", "$5\u20138 each"],
     ["1", "Annunciator switch", "Applied Avionics VIVISUN/Korry split-legend (or 2 LEDs for bench)", "varies"],
     ["2", "Lamp driver", "logic-level N-MOSFET (2N7002/AO3400) or NPN (2N2222)", "&lt;$1"],
     ["4", "Resistors", "1 k\u2126 \u00d72 (gate), 10 k\u2126 \u00d72 (pulldown)", "&lt;$1"],
-    ["2\u20133", "Pull-ups", "10 k\u2126 on SD CMD/DAT0 (if breakout lacks them)", "&lt;$1"],
-    ["\u2014", "Caps", "0.1 \u00b5F per device, 100 \u00b5F bulk near amp", "&lt;$1"],
+    ["2\u20133", "Pull-ups", "10 k\u2126 on SD CMD/DAT0/CD lines (if breakout lacks them)", "&lt;$1"],
+    ["\u2014", "Caps", "0.1 \u00b5F per device, 100 \u00b5F bulk near 5 V rail", "&lt;$1"],
     ["1", "PTT button", "momentary SPST (or use BOOT)", "&lt;$1"],
+    ["*(bench only)*", "I2S amp (bench test)", "<b>MAX98357A</b> breakout \u2014 bench use only; not installed", "$4\u20137"],
+    ["*(bench only)*", "Speaker (bench test)", "4\u20138 \u2126, \u2265 2 W \u2014 bench use only; not installed", "$2\u20135"],
+    ["*(bench only)*", "MEMS mic (bench test)", "<b>INMP441</b> or ICS-43434 \u2014 bench use only; not the installed input", "$4\u20136"],
 ]
 story.append(make_table(bom, [0.5*inch, 1.7*inch, 3.5*inch, 1.0*inch]))
 story.append(Spacer(1,5))
-story.append(Paragraph("<b>Integrated alternative:</b> ESP32-S3-Korvo-2 (~$45\u201355) replaces the mic/codec/amp/SD items above; use its BSP pin map and the ES8311 codec init.", body))
+story.append(Paragraph("<b>Integrated alternative:</b> ESP32-S3-Korvo-2 (~$45\u201355); note its ES8311 codec + NS4150 amp are bench-like configurations. The installed design still requires the isolated audio-panel input stage and isolated line-level output stage (COM3 channel) added externally.", body))
 
 # ============ 7. KORVO-2 ============
 story.append(Paragraph("7 &nbsp; ESP32-S3-Korvo-2 Differences (integrated build)", h1))
@@ -520,14 +595,22 @@ story.append(Paragraph("<b>Bottom line:</b> the ESP32-S3 remains the right basel
 
 # ============ 10. microSD config ============
 story.append(PageBreak())
-story.append(Paragraph("10 &nbsp; microSD Configuration & JSON Schema", h1))
-story.append(Paragraph("Checklist data is loaded from the card at boot. There is <b>no compiled-in fallback</b> \u2014 data comes only from the card. If the card has exactly one aircraft folder it loads automatically; <font name='Mono' size='8'>config.txt</font> is only needed when multiple folders exist.", bodyj))
-layout = """/sdcard/
-  config.txt                 (optional) one line:  AIRCRAFT=CJ2
+story.append(Paragraph("10 &nbsp; microSD Configuration & JSON Schema (Two-Card Model)", h1))
+story.append(Paragraph(
+    "Checklist data is split across two cards. The firmware boots the <b>Config Card first</b> "
+    "(slot 1, <font name='Mono' size='8'>/sdcard-config/config.json</font>), then loads the matching aircraft folder from the <b>Data Card</b> "
+    "(slot 2, <font name='Mono' size='8'>/sdcard-data/&lt;aircraft&gt;/</font>). "
+    "There is <b>no compiled-in fallback</b> \u2014 both cards must be present. "
+    "A missing or unreadable Config Card is <font name='Mono' size='8'>FAULT_NO_CONFIG</font>; "
+    "a missing Data Card is <font name='Mono' size='8'>FAULT_NO_CARD</font>.", bodyj))
+layout = """SLOT 1 (/sdcard-config/)  \u2190  Config Card (write-protected per install)
+  config.json              installation config: aircraft, audio source, VOX, options
+
+SLOT 2 (/sdcard-data/)   \u2190  Data Card (checklist library + audio)
   CJ2/
-    checklists.json          the checklist data (schema below)
+    checklists.json        the checklist data (schema below)
     audio/
-      engine_fire_1.wav      one 16-bit/16 kHz/mono WAV per item "clip"
+      engine_fire_1.wav    one 16-bit/16 kHz/mono WAV per item \"clip\"
       engine_fire_2.wav
       ready.wav  complete.wav ..."""
 story.append(mono_light(layout))
@@ -593,7 +676,7 @@ if disp_h > maxh:
     disp_h = maxh
     disp_w = iw * (disp_h / ih)
 story.append(Image(img_path, width=disp_w, height=disp_h))
-story.append(Paragraph("Color-coded schematic: ESP32-S3 + INMP441 mic + MAX98357A amp + microSD + Applied Avionics split-legend annunciator with the lamp-driver sub-circuit and dark-cockpit state table.", cap))
+story.append(Paragraph("System wiring diagram: ESP32-S3 + isolated audio-panel input stage (I2S_NUM_0 / AIN_BCLK/LRCLK/DIN, GPIO4/5/6) + isolated audio output stage to COM3-style channel (I2S_NUM_1 / AOUT_BCLK/LRCLK/DOUT, GPIO15/16/17) + two microSD (Config Card + Data Card) + Applied Avionics split-legend annunciator with lamp-driver sub-circuit and dark-cockpit state table. INMP441 mic + MAX98357A bench-test items shown separately.", cap))
 
 # ============ 13. SOURCES ============
 story.append(PageBreak())

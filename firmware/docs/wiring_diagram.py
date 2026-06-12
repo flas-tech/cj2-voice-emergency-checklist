@@ -25,7 +25,7 @@ C_3V3   = "#ff5d5d"   # red
 C_5V    = "#ff9f43"   # orange
 C_GND   = "#5b6577"   # gray
 C_I2S_M = "#37d39a"   # green (audio-in I2S)
-C_I2S_S = "#36b3ff"   # blue  (speaker I2S)
+C_I2S_S = "#36b3ff"   # blue  (audio-out I2S to COM3 isolated output stage)
 C_SD    = "#c98bff"   # purple (SD)
 C_CTRL  = "#ffd84d"   # yellow (buttons/select)
 C_LED   = "#ff7ac0"   # pink  (legend lamps)
@@ -62,7 +62,7 @@ def pin(x,y,label,color,side="left",size=13):
 parts.append(f'<rect width="{W}" height="{H}" fill="{BG}"/>')
 # title
 text(40,52,"CJ2 Voice Emergency Checklist — DIY Wiring Diagram", 30, INK, weight="700")
-text(40,80,"ESP32-S3 + audio-panel input (isolated I2S codec) + MAX98357A amp + two microSD (Config + Data) + Applied Avionics split-legend switch",
+text(40,80,"ESP32-S3 + audio-panel input (isolated I2S codec, RX-only) + audio-panel output (isolated TX to COM3 channel) + two microSD (Config + Data) + Applied Avionics split-legend switch",
      16, SUB)
 text(40,102,"Pin numbers match firmware/main/board_pins.h   •   DEMO / TRAINING ONLY — NOT FOR FLIGHT", 13, C_5V, weight="600")
 
@@ -97,9 +97,9 @@ esp_left = [
 # right-side ESP pins (x = ex+ew)
 RX = ex+ew
 esp_right = [
-    (430,"G15 BCLK", C_I2S_S),
-    (465,"G16 LRC",  C_I2S_S),
-    (500,"G17 DIN",  C_I2S_S),
+    (430,"G15 AOUT BCLK", C_I2S_S),
+    (465,"G16 AOUT LRC",  C_I2S_S),
+    (500,"G17 AOUT DOUT", C_I2S_S),
     (600,"G21 OFF",  C_LED),
     (635,"G14 FLT",  C_LED),
     (700,"G48 STA",  C_CTRL),
@@ -140,23 +140,26 @@ SPX=sx+sw_
 for (y,lab,col) in sdp:
     dot(SPX,y,col); text(SPX-12,y+4,lab,12,SUB,"end",mono=True)
 
-# ================= SPEAKER AMP (top-right) =================
-ax,ay,aw,ah = 1230, 250, 300, 210
+# ================= AUDIO-PANEL OUTPUT / COM3 (top-right) =================
+ax,ay,aw,ah = 1120, 250, 360, 250
 rect(ax,ay,aw,ah,PANEL,rx=12)
-text(ax+16,ay+30,"MAX98357A AMP", 18, INK,weight="700")
-text(ax+16,ay+50,"Class-D  -  2.5 to 5.5 V  -  <=650 mA pk", 12, SUB)
-amp=[(ay+82,"VIN",C_5V),(ay+105,"GND",C_GND),(ay+128,"BCLK",C_I2S_S),
-     (ay+151,"LRC",C_I2S_S),(ay+174,"DIN",C_I2S_S)]
+text(ax+16,ay+28,"AUDIO-PANEL OUTPUT (COM3)", 17, INK,weight="700")
+text(ax+16,ay+46,"ISOLATED TX to dedicated aux channel", 11, SUB)
+text(ax+16,ay+64,"I2S DAC + isolation xfmr + line-level out", 11, C_5V)
+text(ax+16,ay+82,"Cannot key/jam/back-feed required COM channels", 10, C_5V)
+text(ax+16,ay+100,"Separate connector from AUDIO IN (RX ONLY)", 10, SUB)
+# output stage pins (from ESP)
+amp=[(ay+124,"BCLK",C_I2S_S),(ay+148,"LRC",C_I2S_S),(ay+172,"DIN",C_I2S_S)]
 for (y,lab,col) in amp:
     dot(ax,y,col); text(ax+12,y+4,lab,12,SUB,"start",mono=True)
-text(ax+16,ay+ah-30,"SD pin: float = mono", 11, C_5V)
-text(ax+16,ay+ah-12,"GAIN: NC = 9 dB (default)", 11, C_5V)
-# speaker symbol
-spk_x, spk_y = ax+aw+10, ay+150
-parts.append(f'<path d="M {spk_x},{spk_y-14} h14 l18,-18 v60 l-18,-18 h-14 z" '
-             f'fill="{PANEL2}" stroke="{EDGE}" stroke-width="1.5"/>')
-text(spk_x+6, spk_y+44, "4–8 Ω", 11, SUB, "middle")
-wire([(ax+aw, ay+82),(spk_x-4, ay+82),(spk_x-4, spk_y-30),(spk_x+6,spk_y-30)], C_5V, 2)  # decorative
+text(ax+16,ay+200,"Line-level out -> 600 ohm isolation xfmr", 10, C_5V)
+text(ax+16,ay+216,"-> COM3-style audio-panel input", 10, C_5V)
+text(ax+16,ay+ah-12,"[bench: MAX98357A substituted on GPIO15/16/17 only]", 10, SUB)
+# arrow symbol pointing right toward audio panel
+parts.append(f'<path d="M {ax+aw+10},{ay+135} l26,0 m-10,-10 l10,10 l-10,10" '
+             f'fill="none" stroke="{C_I2S_S}" stroke-width="2.5" stroke-linecap="round"/>')
+text(ax+aw+16, ay+128, "to audio", 11, SUB, "start")
+text(ax+aw+16, ay+162, "panel COM3", 11, C_I2S_S, "start")
 
 # ================= ANNUNCIATOR SWITCH (right, lower) =================
 gx,gy,gw,gh = 1150, 540, 400, 470
@@ -233,13 +236,13 @@ px,py,pw,ph = 470, 920, 700, 200
 rect(px,py,pw,ph,PANEL,rx=12)
 text(px+18,py+28,"POWER & GROUND", 16, INK,weight="700")
 pwr=[("3V3 (red)","ESP32-S3 3V3 -> codec VDD, both microSD VDD", C_3V3),
-     ("5V  (orange)","USB/VIN -> amp VIN (best output); lamp rail separate", C_5V),
+     ("5V  (orange)","USB/VIN -> output line driver (low-current); lamp rail separate", C_5V),
      ("GND (gray)","common ground - all devices + lamp driver source", C_GND)]
 for i,(a,b,c) in enumerate(pwr):
     yy=py+58+i*34
     dot(px+28,yy-4,c,6); text(px+44,yy,a,13,INK,weight="700")
     text(px+210,yy,b,12,SUB)
-text(px+18,py+ph-14,"Budget: logic + peripherals < 250 mA; amp adds up to ~650 mA peak at 5V/4ohm - size USB >= 1 A.",
+text(px+18,py+ph-14,"Budget: logic + peripherals < 250 mA; output line driver is low-current (~50 mA max); total USB >= 1 A (speaker amp removed).",
      11, C_5V)
 
 # ===================================================================
@@ -264,15 +267,10 @@ wire([(SPX,sy+176),(512,sy+176),(512,725),(LX,725)], C_SD)     # DAT CD G38
 wire([(SWPX,swy+52),(575,swy+52),(575,765),(LX,765)], C_CTRL)  # SELECT G10
 wire([(SWPX,swy+98),(560,swy+98),(560,790),(LX,790)], C_CTRL)  # PTT override G0
 
-# Amp I2S to ESP right pins (G15/G16/G17)
-wire([(RX,430),(1180,430),(1180,ay+128),(ax,ay+128)], C_I2S_S) # BCLK G15
-wire([(RX,465),(1165,465),(1165,ay+151),(ax,ay+151)], C_I2S_S) # LRC  G16
-wire([(RX,500),(1150,500),(1150,ay+174),(ax,ay+174)], C_I2S_S) # DIN  G17
-# Amp power
-wire([(ax,ay+82),(1190,ay+82),(1190,335),(RX+0,335)], C_5V)    # decorative to 5V (drawn to right edge)
-# route 5V/GND from ESP right to amp more cleanly:
-wire([(RX,335),(1200,335),(1200,ay+82),(ax,ay+82)], C_5V)      # 5V to VIN
-wire([(RX,370),(1215,370),(1215,ay+105),(ax,ay+105)], C_GND)   # GND
+# Audio-out I2S to ESP right pins (G15/G16/G17) -> COM3 isolated output stage
+wire([(RX,430),(1140,430),(1140,ay+124),(ax,ay+124)], C_I2S_S) # AOUT BCLK G15
+wire([(RX,465),(1128,465),(1128,ay+148),(ax,ay+148)], C_I2S_S) # AOUT LRC  G16
+wire([(RX,500),(1116,500),(1116,ay+172),(ax,ay+172)], C_I2S_S) # AOUT DOUT G17
 
 # Legend lamps: GPIO21/G14 -> driver gates (pink), drains to lamps already drawn
 # Route from ESP right pins (G21 @600, G14 @635) down to the driver block gate input.
@@ -280,15 +278,15 @@ gate_x = gx+24+30-8  # approx bx-8 of first driver instance
 wire([(RX,600),(1080,600),(1080,gy+230+160),(gx+24,gy+230+160)], C_LED)  # G21 OFF -> driver
 wire([(RX,635),(1095,635),(1095,gy+230+178),(gx+24+18,gy+230+178)], C_LED, 2.6, dash="6 5") # G14 FLT (2nd half)
 text(1072, 592, "G21 -> OFF half", 10, C_LED, "end")
-text(1108, 760, "G14 -> FAULT half (2nd driver)", 10, C_LED, "start")
+text(1072, 628, "G14 -> FAULT half", 10, C_LED, "end")
 
 # Status LED note (G48 onboard)
 text(RX+12, 690, "G48 = onboard RGB (status)", 11, SUB)
 
 # ---- legend / key ----
 kx,ky = 40, H-150
-keys=[("3.3 V",C_3V3),("5 V",C_5V),("GND",C_GND),("Audio-in I2S",C_I2S_M),
-      ("Speaker I2S",C_I2S_S),("SD bus + I2C",C_SD),("Control in",C_CTRL),("Legend lamp",C_LED)]
+keys=[("3.3 V",C_3V3),("5 V",C_5V),("GND",C_GND),("Audio-in I2S (RX)",C_I2S_M),
+      ("Audio-out I2S (COM3 TX)",C_I2S_S),("SD bus + I2C",C_SD),("Control in",C_CTRL),("Legend lamp",C_LED)]
 text(kx,ky-12,"NET KEY",13,INK,weight="700")
 for i,(lab,col) in enumerate(keys):
     yy=ky+ (i//4)*26

@@ -20,9 +20,17 @@ installation), and recognition is **voice-activated (VOX)** by default — the p
 speaks, with a push-to-talk (PTT) button retained as a manual override. **Configuration
 and checklist data live on two separate cards** — a write-protected **Config Card** that
 defines the installation (aircraft selection, audio source, VOX behavior, hardware
-options) and a **Data Card** that carries the checklist library and audio. This two-card,
-audio-panel-fed design is a deliberate change from the earlier onboard-microphone /
-single-card demo and carries certification consequences addressed honestly in Part C.
+options) and a **Data Card** that carries the checklist library and audio. Checklist
+read-aloud audio is played back **out to the aircraft audio panel** through a **dedicated,
+separate, galvanically-isolated COM3-style audio output channel** (an isolated line-level
+transmit stage), so the crew hears checklist items in their headsets; the onboard
+speaker/amplifier used in the earlier design is removed. The audio-panel INPUT tap
+(receive-only, galvanically isolated) and the audio-panel OUTPUT channel (isolated TX to
+COM3-style aux channel) are **electrically separate paths on separate connectors**. This
+two-card, audio-panel-fed design is a deliberate change from the earlier onboard-microphone
+/ single-card demo and carries certification consequences addressed honestly in Part C;
+the addition of the isolated COM3-style audio output is the most significant
+interface-risk change in this revision.
 
 **This master reference supersedes and combines** the previously separate documents:
 the technical data packet, the processor-selection note, and the enclosure specification.
@@ -36,7 +44,7 @@ Those remain in the repository for history; this is the single source of truth.
 |---|---|
 | **A. Product** | What the system is, the generic architecture, and the safety model |
 | **B. The cards** | The two-card (Config + Data) model + the formal card specifications & validation |
-| **C. Certification basis** | NORSEE / DO-160G / installation path, the deliberate DO-178C-avoidance argument, and the audio-panel-interface impact |
+| **C. Certification basis** | NORSEE / DO-160G / installation path, the deliberate DO-178C-avoidance argument, and the audio-panel-interface impact — both the receive-only INPUT tap and the isolated COM3-style OUTPUT injection channel, and the added cert risk the output path introduces |
 | **D. Hardware reference** | Pin map, audio-input stage, VOX/PTT, per-device wiring, annunciator, lamp driver, power, BOM, processor selection |
 | **E. Enclosure** | Two-piece mechanical specification (dual card slots, isolated audio interface) for the fabricating engineer |
 | **F. References** | All cited regulatory and component sources |
@@ -50,21 +58,26 @@ Those remain in the repository for history; this is the single source of truth.
 | It **is** | It **is not** |
 |---|---|
 | An **advisory** read-aloud reader of checklist items | A required or primary aircraft system |
-| **Receive-only** on a single audio tap; no command/data to any aircraft system | A transmitter, a panel control, or an interface to avionics/engines/controls |
+| **Receive-only on the audio-panel INPUT tap** (galvanically isolated, listen-only); plus a **separate, galvanically-isolated OUTPUT into a dedicated COM3-style audio-panel channel** for checklist read-aloud; no command/data to any aircraft system | A transmitter on aircraft COM radios, a panel control, or an interface to avionics/engines/flight controls. It **does** inject advisory audio into one dedicated aux/COM3-style channel via an isolated output — but that output is on a **separate channel** from the receive tap and is electrically isolated from required COM channels |
 | Driven entirely by the installed **Config Card + Data Card** | Tied to one airframe in firmware |
 | **Offline**, deterministic, single-chip | A cloud / connected / large-vocabulary STT device |
 | A **complement** to the certified/required checklist | A substitute for the AFM/QRH or required checklist |
 
 This framing is not cosmetic — it is the foundation of the certification argument in
-Part C. A device that is non-required, advisory-only, fails to a clearly-annunciated safe
-state, and connects to the aircraft only through a **galvanically-isolated, receive-only**
-audio tap is the profile that fits the **NORSEE** (Non-Required Safety Enhancing
-Equipment) approval path and that lets the program **lean on DO-160G environmental
-qualification while avoiding DO-178C software assurance.** Note that the audio-panel tap
-is a **wired interface to an aircraft system** — it deliberately trades the old
-"electrically independent" claim for a weaker but defensible "receive-only, isolated"
-posture. Part C addresses this honestly; it is the most significant certification change
-in this revision.
+Part C. The device connects to the aircraft audio panel through **two electrically
+separate, galvanically-isolated channels**: (1) a **receive-only isolated INPUT tap**
+(listen-only; cannot back-feed) used as the ASR speech source, and (2) a **separate,
+galvanically-isolated OUTPUT into a dedicated COM3-style audio-panel channel** (an
+isolated line-level TX stage) through which checklist read-aloud audio is delivered to
+the crew in-headset. The input-tap language of "receive-only, isolated" is preserved
+and accurate for the INPUT side; the OUTPUT side adds a carefully scoped, isolated
+unidirectional injection into one dedicated aux channel. This dual-isolated-channel
+architecture still fits the **NORSEE** (Non-Required Safety Enhancing Equipment) approval
+path and lets the program **lean on DO-160G environmental qualification while avoiding
+DO-178C software assurance** — but the isolated audio OUTPUT is the **most significant
+certification/interface-risk item in this revision** (superseding the prior "audio-panel
+tap" note), and it must be addressed explicitly in the isolation design and safety
+assessment. Part C addresses this honestly.
 
 ## A.2 Generic system architecture
 
@@ -72,7 +85,7 @@ in this revision.
 |---|---|---|
 | **MCU + speech stack** | VOX/wake word → command recognition → playback sequencing | No — fixed firmware |
 | **Audio-panel input stage** | Takes crew speech **from the aircraft audio panel** — analog (isolated line tap) or digital (I2S codec), selectable per install | **Config-driven** — the source is set by the Config Card; the hardware path is wired at install |
-| **Speaker + amplifier (I2S)** | Reads checklist items / annunciations aloud (own speaker; not fed back to the panel) | No |
+| **Audio-panel output stage (isolated TX to COM3-style channel)** | Delivers checklist read-aloud audio **out to a dedicated COM3-style audio-panel input channel** via a galvanically-isolated, line-level output stage (isolation transformer + line driver on the TX line); crew hears checklist items in-headset. **Onboard speaker/amplifier removed.** The output is on a **separate channel and separate connector** from the receive-only INPUT tap. An isolation transformer on the TX line ensures a device fault cannot key, jam, load, or back-feed the panel's other channels or required COM radios. | No (fixed output stage hardware; the audio-panel COM3 channel it drives is chosen at installation) |
 | **Config Card (microSD, slot 1)** | Defines the installation: active aircraft, audio source (analog/digital), VOX parameters, hardware options | **Yes — per installation** |
 | **Data Card (microSD, slot 2)** | Carries the checklist library, trigger/advance vocabulary, and read-aloud audio | **Yes — per aircraft** |
 | **Annunciator switch** | Dark-cockpit status / fault indication, IN/OUT select, PTT override | No |
@@ -102,14 +115,24 @@ Three design rules define the failure behavior, and each one maps to a NORSEE re
    A fault lights the amber FAULT legend. Selected OUT shows the white OFF status and
    **inhibits** the fault legend (a deliberately deselected system needs no crew action).
    A power-up lamp test proves the legend is alive.
-3. **Receive-only, isolated interface.** The device's only tie to an aircraft system is the
-   **audio-panel input**, and that tie is **one-way (listen) and galvanically isolated** (see
-   C.3a, D.3.1): a high-impedance, isolation-transformer-coupled tap for the analog path, or
-   a buffered receive-only feed for the digital path. The unit **cannot transmit, key, mute,
-   or back-feed** the panel, and it still draws power on its own protected rail. A short,
-   open, or failure of the device cannot affect audio-panel function. This replaces the
-   former "no electrical tie at all" claim with a narrower, testable one — and it is the
-   crux of the Part C argument.
+3. **Dual-isolated-channel interface.** The device connects to the aircraft audio panel
+   through **two electrically separate, galvanically-isolated channels** (see C.3a, D.3.1,
+   D.3.3a):
+   - **Receive-only INPUT tap** — a high-impedance, isolation-transformer-coupled (analog)
+     or buffered-receive-only (digital) tap off the audio panel; one-way listen only; the
+     unit **cannot transmit, key, mute, or back-feed** via this path; a short, open, or
+     device failure cannot affect audio-panel function on this side.
+   - **Isolated OUTPUT into a dedicated COM3-style channel** — a galvanically-isolated,
+     line-level output stage (isolation transformer on the TX line) that injects
+     checklist read-aloud audio into one dedicated auxiliary audio-panel channel
+     ("COM3-style"); physically separate connector from the input tap. The isolation
+     barrier ensures a device fault **cannot key, jam, load, or back-feed the panel's
+     other channels or required COM radios**. This output channel is the most significant
+     cert/interface-risk item in this revision and must be addressed in the isolation
+     design and safety assessment (Part C).
+   The device draws power on its own protected rail. This dual-isolated-channel posture
+   replaces the former "receive-only only" claim with a narrower, testable one covering
+   both directions — and it is the crux of the Part C argument.
 
 ---
 
@@ -333,14 +356,19 @@ nothing formal** — provided the architecture earns it. The argument has four l
    the required checklist. Neither failure reduces the crew's ability to cope with a
    condition worse than minor — the NORSEE safety-evaluation test. *[Source: PS-AIR-21.8-1602
    §1.4.]*
-3. **Bounded interface (not full independence).** This revision adds **one** tie to an
-   aircraft system: a **receive-only, galvanically-isolated** audio tap off the audio panel
-   (C.3a). The device takes **no input that commands a function and produces no output to any
-   aircraft system** — it only listens. Physical/electrical separation is preserved on the
-   power and signal-return side by the isolation barrier. This is a **weaker claim than the
-   former "no electrical tie at all,"** and it is called out as such; the argument now rests
-   on *directionality + isolation* rather than *total separation*. *[Source: PS-AIR-21.8-1602
-   §1.4 — design considerations for keeping a failure minor.]*
+3. **Bounded dual-isolated interface.** This revision adds **two** ties to an aircraft
+   system (C.3a), both galvanically isolated: (a) a **receive-only isolated INPUT tap** off
+   the audio panel — the device takes no input that commands a function and produces no
+   output via this path; and (b) a **dedicated isolated OUTPUT** into a COM3-style
+   audio-panel channel for checklist read-aloud — this is a unidirectional audio injection
+   through an isolation transformer, not a control/keying/command path. The device still
+   produces **no command or control output to any aircraft system**, but it does inject
+   advisory audio into one dedicated aux channel. Physical/electrical separation is
+   preserved on the power and signal-return side by the isolation barriers on both paths.
+   The output injection is a **more invasive interface than a pure receive-only tap** and is
+   the argument's weakest point; the strength of the argument now rests on *isolation +
+   directionality + channel separation* rather than *total receive-only.* *[Source:
+   PS-AIR-21.8-1602 §1.4 — design considerations for keeping a failure minor.]*
 4. **Qualitative safety evaluation is permitted** for non-complex equipment; a quantitative
    probabilistic analysis (and the DO-178C machinery that feeds it) is not required for a
    minor-failure advisory function. *[Source: PS-AIR-21.8-1602 §1.4.]*
@@ -353,13 +381,16 @@ nothing formal** — provided the architecture earns it. The argument has four l
   **§2 of the NORSEE policy** (xx.1309, ARP4754A/ARP4761) and software assurance re-enters.
 - "No DO-178C" is **earned by architecture and by procedural mitigations**, not by labeling.
   The revert-to-unopened behavior, the validation gate, the dark-cockpit annunciation, the
-  **receive-only isolated interface**, and a **mandatory limitation that the unit may not be
+  **dual-isolated-channel interface** (receive-only input tap + isolated output into a
+  dedicated COM3-style channel), and a **mandatory limitation that the unit may not be
   used as a substitute for the required checklist** are the price of that classification.
-- **The audio-panel tap raises the installation bar.** What was arguably a minor alteration
-  (a self-contained box drawing only power) now wires into an **aircraft communication
-  system**. That makes an STC (or at minimum careful field-approval scrutiny of the interface)
-  the more likely installation path on most airframes — see C.3a and C.5. Do not assume a
-  logbook-entry minor alteration any more.
+- **The audio-panel interface raises the installation bar — further still with the output
+  channel.** What was arguably a minor alteration (a self-contained box drawing only power)
+  now wires into an **aircraft communication system** for both receive and transmit. The
+  addition of an isolated audio OUTPUT into an audio-panel channel is a more invasive
+  interface than a pure receive-only tap. That makes an STC (or at minimum careful
+  field-approval scrutiny of the interface) the more likely installation path on most
+  airframes — see C.3a and C.5. Do not assume a logbook-entry minor alteration any more.
 - **VOX adds a human-factors failure mode.** Hands-free activation can **false-trigger** on
   ambient cockpit speech, ATC audio, or crew conversation, potentially reading a checklist
   the crew did not request. This is a *misleading/nuisance* mode the ACO will scrutinize; it
@@ -369,41 +400,56 @@ nothing formal** — provided the architecture earns it. The argument has four l
 
 ## C.3a Audio-panel interface impact (the honest part)
 
-Tapping the **aircraft audio panel** is the single biggest certification change in this
-revision. It must be argued explicitly, because it directly **weakens the independence leg**
-of C.3 and changes the installation classification. The goal is to make the interface so
-narrow and so demonstrably one-way that the residual failure stays minor.
+This revision adds **two** interfaces to the aircraft audio panel: a receive-only isolated
+INPUT tap (the original change from Rev A) and now a **dedicated isolated OUTPUT** channel
+(COM3-style) for checklist read-aloud delivery. Both must be argued explicitly. The goal is
+to make both interfaces so narrow and so demonstrably direction-controlled and isolated that
+the residual failure stays minor. The output path is the more significant of the two.
 
 **What the interface is — and is not:**
 
-| Property | Design commitment |
-|---|---|
-| **Directionality** | **Receive-only.** The device has no path to transmit, key a radio, mute, or inject audio into the panel. There is no DAC, line-driver, or PTT line going *to* the panel. |
-| **Isolation (analog path)** | A **600 Ω aviation audio ground-loop isolation transformer** (e.g. Allen Avionics AGL series) provides galvanic isolation between the panel and the device; high-impedance, line-level tap through a series resistor so the device is a negligible load. |
-| **Isolation (digital path)** | A buffered, receive-only I2S input from a codec ADC fed by the same isolated/high-impedance tap; no clock or data driven back toward any aircraft bus. |
-| **Fault containment** | A short, open, or power loss inside the device cannot load down, ground, or back-feed the panel — the isolation barrier and high-impedance tap see to that. |
-| **No operational credit** | The panel feed is *listened to* for recognition only; it is never relied on for any aircraft function. |
+| Property | INPUT tap (receive-only) | OUTPUT channel (isolated TX to COM3) |
+|---|---|---|
+| **Directionality** | **Receive-only.** No path to transmit, key a radio, mute, or back-feed. | **Output-only.** Unidirectional line-level audio injection into the panel's dedicated COM3-style aux channel. Not a keying or control path. |
+| **Isolation** | **600 Ω aviation audio isolation transformer** (e.g. Allen Avionics AGL series) on the analog path; buffered receive-only I2S for the digital path. No data driven back toward any aircraft bus. | **Line-level isolation transformer** on the TX output line; galvanic barrier between the device and the panel's COM3 input. A fault in the device cannot key, jam, load, or back-feed the panel's other channels or required COM radios. |
+| **Fault containment** | Short, open, or power loss inside the device cannot load down, ground, or back-feed the panel via the input path. | Short, open, or power loss cannot key or jam the panel via the output path; the isolation transformer is the primary barrier. |
+| **Channel separation** | INPUT and OUTPUT are on **separate connectors and separate galvanic barriers**. They do not share a conductor path. | (same) |
+| **No operational credit** | The panel feed is *listened to* for recognition only. | The injected audio is advisory/informational only; the crew's authority is the required checklist. |
 
 **Why this still supports a minor classification:**
-- The audio panel and intercom **continue to function identically whether the device is
-  present, powered, or failed** — the tap is parallel and high-impedance.
-- The failure modes the tap could plausibly add (loading, ground loop, injected noise) are
-  **removed by isolation and the receive-only topology**, and are exactly what **DO-160G
-  conducted/induced-susceptibility and the audio-system installation tests** are meant to
-  verify (C.4).
-- This is analogous to other **listen-only** cockpit aids (cockpit voice recorders,
-  audio-logging headsets) that tap audio without compromising the source.
+- The input tap is parallel and high-impedance; the audio panel and intercom **continue to
+  function identically whether the device is present, powered, or failed** on the input side.
+- The output channel is a **dedicated aux channel** (COM3-style), not the crew intercom or
+  any required COM radio channel; a failure on the output side (silence, noise, device
+  failure) does not remove any required function.
+- The DO-160G conducted/induced-susceptibility and audio-system installation tests (C.4) are
+  the appropriate means to demonstrate no degradation on either path.
 
-**Why it nonetheless raises the bar (do not gloss over this):**
-- The interface now touches an **aircraft communication system**, so the installation will
-  in most cases be evaluated as a change that affects that system — pushing the path toward
-  **STC / careful field approval** rather than a simple logbook minor alteration (C.5).
-- The ACO may require **substantiation that the tap does not degrade comm audio** (intercom
-  level, sidetone, hot-mic/VOX behavior of the *panel's own* circuits) under all conditions,
-  including device failure.
-- Audio-panel wiring practice matters: many panels **ground audio jacks only at the intercom**
-  to avoid ground loops, so the tap point and shield grounding must be coordinated with the
-  specific panel's installation manual.
+**Why the output channel raises the bar (do not gloss over this):**
+- **Isolation/failure modes (primary risk).** The most significant question is whether the
+  isolation design ensures a fault inside the device (including output-stage failure, supply
+  fault, or software runaway) **cannot key, jam, load, or back-feed** the panel's COM
+  channels or intercom. The isolation transformer on the TX line is the primary barrier;
+  the design must demonstrate this under all failure conditions.
+- **Interference with required COM audio.** The ACO may require substantiation that the
+  injected advisory audio **cannot interfere with** required ATC/aircraft audio on the panel —
+  e.g., that the output level is set conservatively, that the COM3 channel cannot bleed onto
+  required COM1/COM2 channels, and that the injected audio cannot mask or be mistaken for
+  required ATC communication.
+- **Intelligibility / masking.** There is a human-factors question: can the crew mistake the
+  injected checklist audio for required ATC/aircraft audio, or can the injected audio mask
+  required communications? Mitigations include a distinctively different voice/audio
+  treatment, a conservative output level, and the standing limitation that the required
+  checklist remains the authority.
+- **Input-tap bar still applies.** All the previously stated concerns about the input tap
+  (loading, ground loop, grounding practice, intercom-level degradation) still apply to
+  the input side and are unchanged.
+- **STC / careful field approval.** The interface now touches an aircraft communication
+  system for **both receive and transmit**; plan for STC or carefully substantiated field
+  approval, not a bare logbook entry (C.5).
+- Audio-panel wiring practice: many panels **ground audio jacks only at the intercom** to
+  avoid ground loops, so both the input tap point and the output injection point, and their
+  shield grounding, must be coordinated with the specific panel's installation manual.
 
 **VOX (voice-activation) certification note.** Replacing push-to-talk with VOX as the
 primary trigger introduces a **false-activation human-factors mode** (reading an unrequested
@@ -440,12 +486,15 @@ targets**, not completed tests. *[Source: RTCA/DO-160G; FAA AC 21-16G.]*
 > The deliberate choice to **disable Wi-Fi and Bluetooth in firmware** is both a security
 > decision and an emissions-qualification advantage (§21).
 
-> **Audio-interface-specific evidence (beyond the table):** because the unit now taps the
-> audio panel, qualification should additionally demonstrate that — across all DO-160G
-> conditions and **including a failed/unpowered device** — the tap does not degrade
-> audio-panel performance (intercom level, sidetone, the panel's own VOX/hot-mic behavior).
-> The isolation transformer and high-impedance receive-only topology (C.3a) are the design
-> basis for that demonstration.
+> **Audio-interface-specific evidence (beyond the table):** because the unit now has both a
+> receive tap and an isolated output into the audio panel, qualification should additionally
+> demonstrate — across all DO-160G conditions and **including a failed/unpowered device** —
+> that (a) the **input tap** does not degrade audio-panel performance (intercom level,
+> sidetone, the panel's own VOX/hot-mic behavior), and (b) the **isolated output** cannot
+> key, jam, load, or back-feed the panel's COM channels under any failure mode, and the
+> injected advisory audio level does not mask or interfere with required ATC/aircraft audio.
+> The isolation transformers on both paths (C.3a) and the high-impedance receive-only input
+> topology are the design basis for those demonstrations.
 
 ## C.5 Approval & installation path (per airframe)
 
@@ -467,13 +516,14 @@ chain for a Part 23/27/29 airframe:
      guidance.]*
 5. **Part 25 aircraft** — skip NORSEE; pursue **STC** for the installation (C.1.1).
 
-> **The audio-panel interface raises the install classification.** Because the device now
-> wires into an **aircraft communication system** (the audio panel), step 4 should be
-> approached assuming the interface makes the alteration **more than minor** on most airframes
-> — i.e. plan for an **STC or a field approval that specifically substantiates the audio tap**
-> (receive-only, isolated, no degradation of comm audio per C.3a/C.4), not a bare logbook
-> entry. The earlier power-only/independent design could credibly claim a minor alteration;
-> this one generally cannot.
+> **The audio-panel interface raises the install classification — the output channel raises
+> it further.** Because the device now wires into an **aircraft communication system** for
+> both receive and transmit, step 4 should be approached assuming the interface makes the
+> alteration **more than minor** on most airframes — i.e. plan for an **STC or a field
+> approval that specifically substantiates both the receive-only input tap and the isolated
+> COM3-style audio output** (isolated, no degradation of comm audio, no keying/jamming of
+> required channels per C.3a/C.4), not a bare logbook entry. The earlier power-only/
+> independent design could credibly claim a minor alteration; this one generally cannot.
 
 ### C.5.1 Where TSO and PMA fit (and don't, here)
 - **TSO authorization** is a *minimum-performance* design+production approval against a
@@ -512,7 +562,8 @@ manual:
 | Software assurance | **DO-178C not sought** — advisory/minor (C.3) | Architecture supports it; ACO concurrence pending |
 | Complex hardware | DO-254 not invoked (simple COTS) — AC 20-152A | N/A by design |
 | Human factors / color | AC 25-11B conventions, dark-cockpit | Implemented in design |
-| **Audio-panel interface** | Receive-only + galvanic isolation; no comm-audio degradation (C.3a, C.4 §18/§19) | Architecture defined; **substantiation/test pending** |
+| **Audio-panel interface — INPUT tap** | Receive-only + galvanic isolation; no comm-audio degradation (C.3a, C.4 §18/§19) | Architecture defined; substantiation/test pending |
+| **Audio-panel interface — OUTPUT (COM3 channel)** | Galvanically-isolated line-level TX to dedicated COM3-style channel; isolation transformer on TX line; cannot key/jam/load panel or required COMs; advisory audio cannot mask required ATC audio (C.3a) | **Architecture defined; this is the most significant new interface-risk item — isolation design + safety assessment required before productization** |
 | **VOX false-activation** | Bounded grammar + tunable VAD + retained PTT override (C.3a, D.3.2) | Mitigations defined; ACO human-factors concurrence pending |
 | Installation | **STC / substantiated field approval** (audio tap is more than minor); minor-alteration unlikely | Per-aircraft; none performed |
 | Part 25 airframes | STC (NORSEE excluded) | Flagged |
@@ -534,15 +585,17 @@ manual:
 | Speech stack | Espressif **ESP-SR**: AFE (NS/**VAD → VOX**) → WakeNet "Hi ESP" → MultiNet English |
 | **Crew audio input** | **From the aircraft audio panel** on **I2S_NUM_0**, selectable per install: **analog** (isolated line tap → I2S codec ADC) or **digital** (I2S codec ADC fed from a buffered tap). Onboard MEMS mic = bench-test only |
 | Activation | **VOX** (AFE VAD) primary, hands-free; **PTT** retained as manual override |
-| Audio output | I2S Class-D amplifier on **I2S_NUM_1** → 4–8 Ω speaker (own speaker; not fed to the panel) |
+| Audio output | **I2S_NUM_1** DAC → isolated line-level output stage (isolation transformer + line driver on the TX line) → **dedicated COM3-style audio-panel input channel**; crew hears checklist read-aloud in-headset. **Onboard speaker/amplifier removed.** A bench-test-only speaker output may optionally be provided in the development unit (not the installed configuration). |
 | Config storage | **two microSD slots** — slot 1 **Config Card**, slot 2 **Data Card** (Part B), FAT32 |
 | Annunciation | Applied Avionics split-legend switch (dark-cockpit, AC 25-11B) |
 
-Two build paths: **Integrated** (ESP32-S3-Korvo-2 dev board — ES8311/ES7210 codec, NS4150
-amp, microSD slot; line-in repurposed for the audio-panel feed) or **DIY** (ESP32-S3
-DevKitC-1 N16R8 + audio-panel input stage [isolation transformer + I2S codec ADC] +
-MAX98357A amp + **two** microSD breakouts + the annunciator switch). The earlier INMP441
-MEMS mic remains available only as a bench-test input.
+Two build paths: **Integrated** (ESP32-S3-Korvo-2 dev board — ES8311/ES7210 codec, microSD
+slot; line-in repurposed for the audio-panel receive feed; output stage wired to COM3
+isolation transformer) or **DIY** (ESP32-S3 DevKitC-1 N16R8 + audio-panel input stage
+[isolation transformer + I2S codec ADC] + isolated audio output stage [I2S DAC → isolation
+transformer → line-level TX to COM3 channel] + **two** microSD breakouts + the annunciator
+switch). The earlier INMP441 MEMS mic and MAX98357A speaker-amp remain available only as
+bench-test items; neither is used in the installed configuration.
 
 ## D.2 Master pin map
 
@@ -564,9 +617,9 @@ MEMS mic remains available only as a bench-test input.
 | SD data 0 | `SD_D0_GPIO` | 8 | i/o | SDMMC DAT0 (needs pull-up) |
 | Config-card detect | `SD_CFG_CD_GPIO` | 47 | in (PU) | slot-1 card-detect (Config Card) |
 | Data-card detect | `SD_DAT_CD_GPIO` | 38 | in (PU) | slot-2 card-detect (Data Card) |
-| Speaker bit clock | `SPK_BCLK_GPIO` | 15 | out | I2S1 BCLK → amp BCLK |
-| Speaker word select | `SPK_LRCLK_GPIO` | 16 | out | I2S1 WS → amp LRC |
-| Speaker data out | `SPK_DOUT_GPIO` | 17 | out | I2S1 DOUT → amp DIN |
+| Audio-out bit clock | `AOUT_BCLK_GPIO` | 15 | out | I2S1 BCLK → isolated output stage BCLK |
+| Audio-out word select | `AOUT_LRCLK_GPIO` | 16 | out | I2S1 WS → isolated output stage LRC |
+| Audio-out data | `AOUT_DOUT_GPIO` | 17 | out | I2S1 DOUT → isolated output stage DIN; DAC → isolation transformer → line-level TX to COM3-style audio-panel channel. **Bench-test note:** a speaker-amp (e.g. MAX98357A) may be substituted here for bench testing only; not the installed output. |
 
 **Polarity macros:** `PTT_ACTIVE_LOW=1`, `SELECT_ACTIVE_LOW=1`, `LEGEND_OFF_ACTIVE_HIGH=1`,
 `LEGEND_FAULT_ACTIVE_HIGH=1`, `STATUS_LED_ACTIVE_HIGH=1`, `LAMP_TEST_MS=2000`. Set any
@@ -617,11 +670,31 @@ listens whenever speech is detected on the panel feed, tuned by the Config Card
 software. There is **no PTT/keying line toward the aircraft** — this button only tells the
 device's own recognizer to listen.
 
-**D.3.3 MAX98357A Class-D amp → ESP32-S3 (I2S_NUM_1).** Supply 2.5–5.5 V; ~2.4 mA quiescent;
-peak ~650 mA at 5 V/4 Ω; no MCLK. VIN→5 V (full output), GND→GND, BCLK→GPIO15, LRC→GPIO16,
-DIN→GPIO17, GAIN NC = 9 dB, SD/mode float = mono. **OUT+/OUT− are bridge-tied — never to
-GND.** The device drives its **own speaker**; its output is **never** routed back into the
-audio panel.
+**D.3.3a Isolated audio output stage → COM3-style audio-panel channel (I2S_NUM_1).**
+Checklist read-aloud audio is delivered **out to the aircraft audio panel** via a dedicated
+galvanically-isolated, line-level output stage on I2S_NUM_1 (GPIO15 BCLK, GPIO16 LRC,
+GPIO17 DOUT). The output chain is: ESP32-S3 I2S DAC → I2S-to-analog DAC/line driver → a
+**line-level isolation transformer** on the TX output line → line-level output (600 Ω
+nominal or per the panel's COM3 input impedance) → dedicated COM3-style audio-panel input
+channel. The isolation transformer on the TX line provides galvanic isolation; a device
+fault (short, open, supply failure, output-stage failure) **cannot key, jam, load, or
+back-feed the panel's other channels or required COM radios**. Output level should be set
+conservatively so the injected advisory audio is clearly audible but does not mask required
+ATC/aircraft audio.
+
+*Judgment call / open item:* The exact I2S DAC part and isolation transformer type for the
+output stage must be confirmed by the bench engineer. Options include a small I2S DAC IC
+(e.g. PCM5102A class) followed by a 600Ω:600Ω aviation audio isolation transformer (Allen
+Avionics AGL series or equivalent), or a combined line-driver/transformer module. The
+`AOUT_BCLK/LRCLK/DOUT` macros (GPIO15/16/17) match the former speaker-amp I2S assignments;
+the firmware I2S_NUM_1 driver is retained — only the physical output hardware changes.
+
+**D.3.3b Bench-test speaker output (development/test only — not the installed output).** For
+bench verification of audio content before the isolated output stage is fitted, a MAX98357A
+Class-D amp may be substituted on GPIO15/16/17 (I2S_NUM_1). Supply 2.5–5.5 V; ~2.4 mA
+quiescent; peak ~650 mA at 5 V/4 Ω; BCLK→GPIO15, LRC→GPIO16, DIN→GPIO17, GAIN NC = 9 dB,
+SD/mode float = mono. **OUT+/OUT− are bridge-tied — never to GND. This bench speaker is
+not routed to the aircraft audio panel and is NOT the installed audio output.**
 
 **D.3.4 Two microSD card slots → SDMMC 1-bit.** 3.3 V cards. Shared bus CLK→GPIO7, CMD→GPIO9
 (10 kΩ→3V3), DAT0→GPIO8 (10 kΩ→3V3), VDD→3V3, VSS→GND. **Slot 1 = Config Card** (detect on
@@ -672,15 +745,17 @@ resistors driven straight from GPIO21/GPIO14 within the ~20 mA limit.
 
 | Rail | Loads | Typical | Peak |
 |---|---|---|---|
-| **3.3 V** | ESP32-S3 (Wi-Fi off) + audio codec + **two** microSD slots | ~90–170 mA | ~280 mA (SD init / SR burst) |
-| **5 V** | MAX98357A output | a few mA idle | **~650 mA** (5 V/4 Ω, loud) |
+| **3.3 V** | ESP32-S3 (Wi-Fi off) + audio codec + audio output DAC/line driver + **two** microSD slots | ~90–180 mA | ~290 mA (SD init / SR burst) |
+| **5 V** | Audio output line driver (if used; typically low-current line-level stage) | a few mA | ~50 mA (varies by line driver; **not the ~650 mA speaker-amp figure** — speaker amp removed) |
 | **Lamp rail** | up to 2 legend halves | 0 (dark) | per lamp spec (e.g. 28 V incand.) |
 
-The audio-input codec (a few mA–~20 mA) and the second microSD slot add a little to the
-3.3 V rail; the isolation transformer is passive. Power from **USB 5 V ≥ 1 A**. Keep a 28 V
-legend supply separate from logic 5 V (grounds common only). Bulk decoupling ≥ 100 µF near
-the amp VIN plus 0.1 µF per device. The audio-panel tap draws **no power from the aircraft**
-and is isolated from the device's own grounds through the transformer (analog path).
+The audio-input codec and the second microSD slot add a little to the 3.3 V rail; both
+isolation transformers (input and output) are passive. Power from **USB 5 V ≥ 1 A** (the
+removed MAX98357A was the dominant load; the new output stage is much lower current).
+Keep a 28 V legend supply separate from logic 5 V (grounds common only). The audio-panel
+input tap draws **no power from the aircraft** and is isolated through the transformer;
+the audio-panel output stage is similarly isolated. Bulk decoupling ≥ 100 µF near the
+line-driver VIN; 0.1 µF per device.
 
 ## D.7 Processor selection
 
@@ -713,6 +788,7 @@ longer supported by the current speech algorithms and should be avoided.
 | Speech models | WakeNet `WN9_HIESP`; MultiNet English `mn6_en`/`mn7_en` (S3 only) |
 | Partitions | factory app 3 MB + model 5 MB + storage 2 MB → needs **16 MB** flash (N16R8) |
 | Audio input | ESP-SR AFE fed from I2S0 (codec ADC); **VAD→VOX** gating, PTT override; codec init from Config Card `audio.codec` |
+| Audio output | I2S1 DAC to isolated output stage (isolation transformer → COM3-style audio-panel channel); **no onboard speaker in the installed build** (bench-test speaker-amp optionally substituted during development only) |
 | Two-card load | Config Card first (`/sdcard-config/config.json`) → init audio source + VOX → then matching Data Card folder (`/sdcard-data/<aircraft>/`) |
 | Grammar rules | lowercase + single spaces; spell numbers ("v one"); ~200-cmd cap |
 | Fault behavior | any card/config fault → `ST_FAULT`, amber legend, **no checklist shown** (B.4) |
@@ -725,20 +801,23 @@ longer supported by the current speech algorithms and should be avoided.
 | 1 | **Audio-panel input codec** | I2S codec ADC with line-in: **ES8388 / ES7210** (need MCLK+I2C) or **PCM1808 / CS5343** (self-clocking) |
 | 1 | **Audio isolation transformer** | 600 Ω:600 Ω aviation audio ground-loop isolator (**Allen Avionics AGL** series) |
 | 1 | Input network | ~220–470 Ω series resistor + RC anti-alias for the analog tap |
-| 1 | I2S amp | **MAX98357A** breakout |
-| 1 | Speaker | 4–8 Ω, ≥ 2 W |
+| 1 | **Audio output isolation transformer** | 600 Ω:600 Ω line-level isolation transformer for the TX output stage (e.g. **Allen Avionics AGL series** or equivalent) — galvanic barrier on the COM3 output line |
+| 1 | **Audio output DAC / line driver** | I2S DAC IC (e.g. PCM5102A class) or I2S-in line driver for the COM3 output stage; select based on output impedance and level requirements for the panel's COM3 input |
+| *(bench only)* | I2S amp (bench test) | MAX98357A breakout — bench-test use only; not installed |
+| *(bench only)* | Speaker (bench test) | 4–8 Ω, ≥ 2 W — bench-test use only; not installed |
 | **2** | microSD card + breakout | FAT32 — **Config Card** (slot 1) + **Data Card** (slot 2) |
 | 1 | Annunciator switch | Applied Avionics VIVISUN/Korry split-legend (or 2 LEDs for bench) |
 | 2 | Lamp driver | logic-level N-MOSFET (2N7002/AO3400) or NPN (2N2222) |
 | 4 | Resistors | 1 kΩ ×2 (gate), 10 kΩ ×2 (pulldown) |
 | 2–4 | Pull-ups | 10 kΩ on SD CMD/DAT0; codec I2C pull-ups if needed |
-| — | Caps | 0.1 µF per device/rail, 100 µF bulk near amp |
+| — | Caps | 0.1 µF per device/rail, 100 µF bulk near output line driver (if applicable) |
 | 1 | PTT button | momentary SPST (or use BOOT) — **VOX override** |
 | (opt.) | INMP441 MEMS mic | **bench-test input only**, not the installed source |
 
-Integrated alternative: **ESP32-S3-Korvo-2** (~$45–55) provides codec/amp/SD on-board; use
-its BSP pin map and codec (ES8311/ES7210) init, and repurpose its line-in for the
-audio-panel feed. A production unit adds the second card slot.
+Integrated alternative: **ESP32-S3-Korvo-2** (~$45–55) provides codec/SD on-board; use
+its BSP pin map and codec (ES8311/ES7210) init, repurpose its line-in for the audio-panel
+receive feed, and add the isolated COM3 output stage externally (DAC/line driver +
+output isolation transformer). A production unit adds the second card slot.
 
 ---
 
@@ -752,8 +831,8 @@ for a specific airframe. The only airframe-specific item is the **mounting varia
 
 | Piece | Contents | Where | Why |
 |---|---|---|---|
-| **A. Panel bezel** | Split-legend annunciator switch, speaker + grille, **PTT override** button | Front panel / pedestal, on the **DZUS rail** | Crew must see/reach it; dark-cockpit annunciator in the normal scan |
-| **B. Remote processor box** | ESP32-S3, audio-input stage (isolation transformer + codec), amp, **two microSD card slots**, lamp-driver, power conditioning | Avionics bay / behind-panel, blind | Keeps heat, the card slots, and wiring out of the panel; close to the audio-panel tap point |
+| **A. Panel bezel** | Split-legend annunciator switch, **PTT override** button | Front panel / pedestal, on the **DZUS rail** | Crew must see/reach it; dark-cockpit annunciator in the normal scan. Speaker grille removed (no onboard speaker in the installed design). |
+| **B. Remote processor box** | ESP32-S3, audio-input stage (isolation transformer + codec), **audio output stage** (DAC/line driver + isolation transformer for COM3 TX output), **two microSD card slots**, lamp-driver, power conditioning | Avionics bay / behind-panel, blind | Keeps heat, the card slots, and wiring out of the panel; close to the audio-panel tap and COM3 output point |
 
 A single all-in-one box is acceptable for a pure bench demo, but the two-piece split mirrors
 real remote-mount avionics and keeps the audio-input stage near the panel tap.
@@ -770,8 +849,11 @@ real remote-mount avionics and keeps the audio-input stage near the panel tap.
   exists.
 - **Face layout (top→bottom):** split-legend annunciator switch (cut per the *specific*
   switch datasheet — typical VIVISUN bezel ≈ 15×15 mm to 19×19 mm; top half `VOICE CHKLST
-  OFF` white, bottom `VOICE CHKLST FAULT` amber, upright when installed); speaker grille
-  (≥ 40 % open over the cone, offset from the switch); optional guarded/recessed PTT.
+  OFF` white, bottom `VOICE CHKLST FAULT` amber, upright when installed); optional
+  guarded/recessed PTT. **No speaker grille** — the onboard speaker is removed; checklist
+  audio plays through the crew headsets via the COM3 output channel. The bezel height may
+  be reduced from the prior 4-unit to 3-unit (28.575 mm) since the speaker cone space is
+  freed (confirm against the chosen switch datasheet).
 - **Material/finish:** 6061-T6 aluminum 2.0–3.0 mm (or ABS/PC for a non-structural demo);
   **matte black, low-gloss (≤ 10 gloss units)** to suppress glare; legend by the switch's
   internal engraving (preferred) or laser-etch + white/amber paint-fill; edges chamfered
@@ -779,10 +861,12 @@ real remote-mount avionics and keeps the audio-input stage near the panel tap.
 
 ## E.3 Piece B — remote processor box
 
-- **Envelope:** sized around the ESP32-S3 DevKitC-1 (≈ 70×26 mm) plus amp, the audio-input
-  stage (codec + isolation transformer), **two** microSD breakouts, and the 2-channel
-  lamp-driver; practical outer **≈ 120 × 85 × 45 mm** (slightly larger than before to fit the
-  transformer + second slot). Confirm against the actual stacked board set.
+- **Envelope:** sized around the ESP32-S3 DevKitC-1 (≈ 70×26 mm) plus the audio-input stage
+  (codec + input isolation transformer), the audio output stage (DAC/line driver + output
+  isolation transformer), **two** microSD breakouts, and the 2-channel lamp-driver; practical
+  outer **≈ 120 × 85 × 45 mm** (unchanged — the output stage is compact; confirm against the
+  actual stacked board set with both transformers). Note: without the speaker-amp the box is
+  no longer the largest dissipator; thermal path is simplified.
 - **Mounting:** internal standoffs / M2.5 brass inserts — boards screwed down, not floating
   (vibration). Keep the audio-input stage and its shielded cabling away from the amp and the
   switching DC-DC; the isolation transformer mounts solidly (it is a magnetic part).
@@ -792,12 +876,18 @@ real remote-mount avionics and keeps the audio-input stage near the panel tap.
   Config Card carrier should accept a **write-protect-locked** card.
 - **Access & connectors:** covered/recessed **USB-C** service port (bench use only); one
   keyed, positive-latching main connector (small MIL-circular or D-sub) carrying SELECT,
-  both legend drives, PTT, speaker +/−, power/ground (pinout from `board_pins.h`); **plus a
-  separate, shielded, clearly-labeled `AUDIO IN (ISOLATED, RX ONLY)` connector** for the
-  audio-panel tap — kept on its own keyed connector so it can never be mis-mated to power or
-  the speaker, with the isolation transformer **inside** the box on the panel side of the
-  codec. Accept USB 5 V ≥ 1 A; optional internal **28 V→5 V DC-DC** (≥ 2 A) with TVS + fuse
-  if a 28 V bus mock-up is wanted (mark as demo regulator, not DO-160 qualified).
+  both legend drives, PTT, power/ground (pinout from `board_pins.h`); **plus a separate,
+  shielded, clearly-labeled `AUDIO IN (ISOLATED, RX ONLY)` connector** for the audio-panel
+  receive tap — kept on its own keyed connector so it cannot be mis-mated; isolation
+  transformer **inside** the box on the panel side of the codec; **plus a second separate,
+  shielded, clearly-labeled `AUDIO OUT (ISOLATED, COM3)` connector** for the isolated
+  TX output to the audio-panel COM3-style channel — on its own keyed connector, physically
+  distinct from the input connector, with the output isolation transformer inside the box
+  on the panel side of the output stage. The two audio connectors must be clearly distinct
+  and impossible to swap (different keyings or physical separation). Accept USB 5 V ≥ 1 A;
+  optional internal **28 V→5 V DC-DC** (≥ 1 A, reduced from prior ≥2 A now that the
+  speaker-amp is removed) with TVS + fuse if a 28 V bus mock-up is wanted (mark as demo
+  regulator, not DO-160 qualified).
 - **Material/EMI:** aluminum preferred (doubles as EMI shield + heatsink); if plastic, add a
   grounded conductive shield liner/coating; single-point chassis ground stud bonded to the
   connector shell and ESP32 ground. Route the audio-in shield per the panel's grounding
@@ -805,8 +895,11 @@ real remote-mount avionics and keeps the audio-input stage near the panel tap.
 
 ## E.4 Audio, thermal, environmental, labeling
 
-- **Audio:** 4–8 Ω, ≥ 2 W speaker, sealed-back or small rear volume (5–15 cm³); grille
-  ≥ 40 % open with acoustic mesh; gasket the speaker to prevent buzz.
+- **Audio:** No onboard speaker in the installed design — speaker/grille removed from both
+  pieces. Checklist read-aloud audio is delivered in-headset via the isolated COM3 output
+  channel. If a bench-test speaker output is optionally fitted on the development unit (see
+  D.3.3b), it may be wired to a header on the processor box only; no speaker cutout on
+  the panel bezel.
 - **Thermal:** ESP32-S3 + ESP-SR is low-power (a few hundred mW) — **no fan.** Passive
   convection (vent slots low/high) or conduction (thermal pad to the aluminum wall). If
   sealed, verify internal rise < 20 °C above 55 °C ambient. DC-DC (if fitted) on its own
@@ -815,9 +908,10 @@ real remote-mount avionics and keeps the audio-input stage near the panel tap.
   vibration, etc.) — design guidance for the prototype, formal test for a productized unit.
 - **Labeling:** placard `DEMO / TRAINING ONLY — NOT FOR FLIGHT`; box exterior carries unit
   name, serial/asset field, the **two card-slot labels** (`CONFIG CARD` / `DATA CARD`,
-  FAT32), the `AUDIO IN — ISOLATED, RX ONLY` connector marking, and the USB "bench use
-  only" note; annunciator legends `VOICE CHKLST OFF` (white) / `VOICE CHKLST FAULT` (amber);
-  amber = caution, white = status per AC 25-11B.
+  FAT32), the `AUDIO IN — ISOLATED, RX ONLY` connector marking (receive-only input tap),
+  the `AUDIO OUT — ISOLATED, COM3` connector marking (TX output to audio-panel COM3 channel),
+  and the USB "bench use only" note; annunciator legends `VOICE CHKLST OFF` (white) /
+  `VOICE CHKLST FAULT` (amber); amber = caution, white = status per AC 25-11B.
 
 ## E.5 Deliverables & open items for the engineer
 
@@ -829,15 +923,20 @@ connector cutouts; GD&T on the switch cutout and DZUS holes); connector pinout m
 
 **Open items (confirm before CAD):** the **exact Applied Avionics switch part number** — the
 single most critical dimension; nothing finalizes until it is fixed. Also: DZUS slot vs.
-3-1/8 in round hole in the target panel; the **audio-panel tap point, level, and grounding**
-for the target installation (sets the isolation-transformer + divider design); the **codec
-part** for the digital path (sets the I2C/MCLK init); whether a 28 V input is wanted; and the
-speaker model (sets grille open area + rear-volume cavity).
+3-1/8 in round hole in the target panel; the **audio-panel input tap point, level, and
+grounding** for the target installation (sets the input isolation-transformer + divider
+design); the **audio-panel COM3-style output channel injection point, impedance, and level
+requirements** (sets the output isolation transformer and line driver design — this is a
+new open item from this revision); the **codec part** for the digital input path (sets the
+I2C/MCLK init); the **output DAC/line driver part** (sets the COM3 output stage component
+choice); and whether a 28 V input is wanted. **Speaker model is no longer an open item**
+— the speaker is removed.
 
 **Reference dimensions:** DZUS pitch 9.525 mm · DZUS hole 6.48 mm · backplate 1.6 mm · first
 fastener offset 14.29 mm · pedestal panel width ≈ 146 mm · round instrument hole 79.4 mm ·
-remote box ≈ 120 × 85 × 45 mm · two microSD slots · isolated RX-only audio-in connector ·
-speaker 4–8 Ω ≥ 2 W.
+remote box ≈ 120 × 85 × 45 mm · two microSD slots · isolated `AUDIO IN (RX ONLY)` connector
+(input tap) · isolated `AUDIO OUT (COM3)` connector (TX output to audio-panel COM3 channel)
+· no onboard speaker in the installed design.
 
 ---
 

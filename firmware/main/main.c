@@ -229,8 +229,8 @@ static void feed_task(void *arg) {
         .clk_cfg  = I2S_STD_CLK_DEFAULT_CONFIG(16000),
         .slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(
                         I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO),
-        .gpio_cfg = { .mclk=I2S_GPIO_UNUSED, .bclk=MIC_BCLK_GPIO,
-                      .ws=MIC_LRCLK_GPIO, .dout=I2S_GPIO_UNUSED, .din=MIC_DIN_GPIO },
+        .gpio_cfg = { .mclk=I2S_GPIO_UNUSED, .bclk=AIN_BCLK_GPIO,
+                      .ws=AIN_LRCLK_GPIO, .dout=I2S_GPIO_UNUSED, .din=AIN_DIN_GPIO },
     };
     i2s_channel_init_std_mode(rx, &sc);
     i2s_channel_enable(rx);
