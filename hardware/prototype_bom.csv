@@ -1,0 +1,27 @@
+Ref,Qty,Item,Spec / Example Part,Type,Distributor / Source,Unit Price (USD),Line Total (USD),Notes
+U1,1,ESP32-S3 dev board,ESP32-S3-DevKitC-1 N16R8 (16MB flash / 8MB PSRAM),Dev board,"Mouser / DigiKey / Espressif",18.00,18.00,PSRAM required for ESP-SR; N16R8 variant
+U2,1,Audio-input codec breakout,PCM1808 I2S ADC breakout (self-clocking) OR ES8388/ES7210 module,Breakout,"Amazon / AliExpress / Adafruit",6.00,6.00,Line-in -> I2S ADC; PCM1808 needs no MCLK/I2C (simplest); ES-series needs MCLK(G3)+I2C(G1/G2)
+T1,1,Audio INPUT isolation transformer,600:600 ohm audio isolation transformer (proto: Bourns/Xicon; production: Allen Avionics AGL-600),Passive,"Mouser / DigiKey (proto) / Allen Avionics (prod)",4.00,4.00,Galvanic barrier on RX tap; AGL-600 is aviation-grade (~$60+) for production
+R1,1,Input series resistor,220-470 ohm 1/4W,Passive,"Mouser / DigiKey",0.05,0.05,Level scaling for analog tap
+RC1,1,Input anti-alias RC,~1k + 1-10nF (per codec),Passive,"Mouser / DigiKey",0.10,0.10,Simple RC low-pass ahead of ADC
+U3,1,Audio OUTPUT DAC / line driver,PCM5102A I2S DAC breakout (line-level out),Breakout,"Adafruit #6250 / AliExpress",4.95,4.95,I2S -> analog line level for COM3 TX; no MCLK needed
+T2,1,Audio OUTPUT isolation transformer,600:600 ohm line-level isolation transformer (proto generic; production Allen Avionics AGL-600),Passive,"Mouser / DigiKey (proto) / Allen Avionics (prod)",4.00,4.00,Galvanic barrier on COM3 TX line; cannot key/back-feed panel
+SD1,2,microSD breakout + card,microSD breakout board + 8-32GB card (FAT32),Breakout,"Amazon / Adafruit",4.50,9.00,Slot 1 = CONFIG CARD; Slot 2 = DATA CARD
+SW1,1,Annunciator switch (split-legend),Applied Avionics VIVISUN / Korry split-legend (proto: 2x LED),Switch,"Applied Avionics (prod) / generic LEDs (proto)",6.00,6.00,Proto: white + amber LED w/ resistors; production: real VIVISUN legend
+Q1-Q2,2,Lamp-driver MOSFET,Logic-level N-MOSFET 2N7002 / AO3400 (or 2N2222 NPN),Active,"Mouser / DigiKey",0.20,0.40,One per legend half (OFF/white G21, FAULT/amber G14)
+R2-R3,2,Gate resistor,1 kohm 1/4W,Passive,"Mouser / DigiKey",0.05,0.10,GPIO -> MOSFET gate
+R4-R5,2,Gate pulldown,10 kohm 1/4W,Passive,"Mouser / DigiKey",0.05,0.10,Defined-OFF at boot (dark-cockpit integrity)
+R6-R7,2,SD bus pull-ups,10 kohm 1/4W,Passive,"Mouser / DigiKey",0.05,0.10,On SD CMD (G9) and DAT0 (G8) to 3V3
+D1-D2,2,Bench legend LEDs (optional),White + amber 3mm/5mm LED + 220-330 ohm resistor,Active,"Mouser / DigiKey",0.30,0.60,Proto stand-in for the VIVISUN legend
+SW2,1,PTT override button,Momentary SPST tactile (or use ESP32 BOOT/G0),Switch,"Mouser / DigiKey",0.30,0.30,Force-listen override of VOX
+C1-C8,8,Decoupling caps,0.1 uF ceramic (per device/rail),Passive,"Mouser / DigiKey",0.05,0.40,One per active device rail
+C9,1,Bulk cap,100 uF electrolytic,Passive,"Mouser / DigiKey",0.20,0.20,Near output line-driver VIN
+J1,1,Main I/O connector,9-15 pin D-sub or MIL-circular (keyed),Connector,"Mouser / DigiKey",3.00,3.00,SELECT / 2x legend drive / PTT / power / GND
+J2,1,AUDIO IN connector (isolated RX),Shielded keyed connector (e.g. 3-pin XLR-mini / locking),Connector,"Mouser / DigiKey",2.50,2.50,Receive-only audio-panel tap; own keyed connector
+J3,1,AUDIO OUT connector (isolated COM3),Shielded keyed connector (distinct from J2),Connector,"Mouser / DigiKey",2.50,2.50,Isolated TX to COM3-style audio-panel channel
+PWR1,1,Power input,USB-C 5V >= 1A supply (bench),Power,"Amazon / generic",5.00,5.00,Logic rail; production may add 28V->5V conditioning
+PCB1,1,Custom prototype PCB,2-layer ~100x80mm (this Gerber set),PCB,"JLCPCB / PCBWay (5 pcs)",2.00,2.00,~$2 for 5 pcs at JLCPCB (2-layer); see gerbers/
+MISC,1,Headers / standoffs / wire,2.54mm headers for dev-board sockets + M2.5 standoffs,Mechanical,"Amazon / Mouser",4.00,4.00,Sockets so dev boards plug into the custom PCB
+BENCH1,1,(bench only) I2S amp,MAX98357A Class-D breakout,Breakout,"Adafruit #3006",5.95,0.00,BENCH TEST ONLY - not installed; substitutes on G15/16/17 for audio verification
+BENCH2,1,(bench only) speaker,4-8 ohm >= 2W speaker,Component,"Adafruit / generic",2.00,0.00,BENCH TEST ONLY - not installed
+BENCH3,1,(bench only) MEMS mic,INMP441 I2S mic breakout,Breakout,"AliExpress",3.00,0.00,BENCH TEST ONLY - not the installed input source
