@@ -64,7 +64,7 @@ story.append(Paragraph("Offline Voice-Driven Advisory Checklist Reader Using a G
 story.append(Spacer(1, 0.3*inch))
 story.append(HRFlowable(width="40%", color=TEAL, thickness=1.2))
 story.append(Spacer(1, 0.3*inch))
-for line in ["<b>Inventor:</b> Michael Gravalec",
+for line in ["<b>Inventors:</b> Michael Gravalec; Brandon Cole",
              "<b>Applicant:</b> Flite Line Aviation Services, LLC",
              "<b>Filing type:</b> 35 U.S.C. § 111(b) — Provisional",
              "<b>Project reference:</b> CheckM8 (docket CHECKM8-PROV-001)"]:

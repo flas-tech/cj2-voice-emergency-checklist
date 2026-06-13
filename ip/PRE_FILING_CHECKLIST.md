@@ -10,8 +10,8 @@
 
 **Yes, you *can* file a provisional today to lock the priority date** — the spec, 14 figures, and forms are drafted. But two decisions and one verification must happen first:
 
-1. **Decide entity status** (Small $160 = safe, vs Micro $65 = needs LLC income certification). See `USPTO_Inventor_Applicant_Declaration.md` §B.
-2. **Fill the [FILL] blanks** in the two form drafts (inventor residence, correspondence email, citizenship, title choice).
+1. **Decide entity status** (Small $160 = safe, vs Micro $65 = needs income certification for BOTH inventors + the LLC). See `USPTO_Inventor_Applicant_Declaration.md` §B.
+2. **Fill the [FILL] blanks** in the two form drafts (residence + citizenship for BOTH inventors, correspondence email, title choice).
 3. **Verify current fees** on uspto.gov (they change annually).
 
 **Do NOT skip the new-feature prior-art search before the *nonprovisional*** — see §6. It does not block the provisional, but it is mandatory before you spend money on the nonprovisional.
@@ -44,11 +44,12 @@
 ## 3. Decisions to lock before filing
 
 - [ ] **Title:** pick the long technical title or the short one — must match spec exactly (`SB16` §2).
-- [ ] **Entity status:** Small (safe) vs Micro (needs LLC income test). (`Declaration` §B).
+- [ ] **Entity status:** Small (safe) vs Micro (needs income test for BOTH inventors + the LLC). (`Declaration` §B).
 - [ ] **Pro se vs attorney:** filing yourself or through a registered practitioner?
 - [ ] **Correspondence:** Customer Number, or direct address + valid email.
-- [ ] **Inventor residence + citizenship** (Toronto reference vs South Florida — use actual).
-- [ ] **Assignment** Gravalec → Flite Line Aviation Services, LLC drafted (attorney) — execute at/after filing.
+- [ ] **Both inventors named:** Michael Gravalec **and** Brandon Cole (joint inventors).
+- [ ] **Residence + citizenship for BOTH inventors** (Toronto reference vs South Florida — use actual for each).
+- [ ] **Assignments** from BOTH inventors (Gravalec **and** Cole) → Flite Line Aviation Services, LLC drafted (attorney) — execute at/after filing.
 
 ---
 
@@ -58,7 +59,7 @@
 
 1. **Create / log into** a USPTO.gov account with **two-step authentication**. (Set this up in advance — verification can take time.)
 2. Select **"File a new application"** → **"Provisional application under 35 U.S.C. 111(b)"**.
-3. **Enter application data** (Web ADS-style screens): inventor name + residence, applicant (Flite Line Aviation Services, LLC), correspondence, title, entity status.
+3. **Enter application data** (Web ADS-style screens): both inventor names + residences (use "Add inventor"), applicant (Flite Line Aviation Services, LLC), correspondence, title, entity status.
 4. **Upload documents** (PDF, text-searchable preferred):
    - Specification PDF
    - Drawings PDF (FIG. 1–14)
@@ -75,7 +76,7 @@
 
 - [ ] **Save the filing receipt** (application # + filing date).
 - [ ] **12-month clock starts.** You must file a **nonprovisional (and/or PCT)** claiming priority within **12 months** of the provisional filing date, or you lose the priority benefit. Calendar this hard deadline.
-- [ ] **Execute + record the assignment** (Gravalec → LLC) via EPAS.
+- [ ] **Execute + record assignments from BOTH inventors** (Gravalec → LLC and Cole → LLC) via EPAS.
 - [ ] Decide on **PCT** if foreign protection is wanted (also within the 12-month window).
 
 ---

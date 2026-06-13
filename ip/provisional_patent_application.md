@@ -6,9 +6,9 @@
 
 **Title of Invention:** Offline Voice-Driven Advisory Checklist Reader Using a Galvanically-Isolated Receive-Only Audio-Panel Tap and a Dedicated Galvanically-Isolated Audio-Panel Output Channel, with a Dual-Removable-Card Fail-Safe Configuration Architecture
 
-**Inventor(s):** Michael Gravalec
+**Inventor(s):** Michael Gravalec; Brandon Cole
 
-**Applicant / Assignee (as elected):** Flite Line Aviation Services, LLC *(or Michael Gravalec, individual — to be finalized at filing)*
+**Applicant / Assignee (as elected):** Flite Line Aviation Services, LLC *(joint inventors Michael Gravalec and Brandon Cole to assign to the LLC — to be finalized at filing)*
 
 **Filing type:** U.S. Provisional Patent Application (35 U.S.C. § 111(b))
 

@@ -15,8 +15,9 @@
 
 ## 1. Inventor(s)
 
-This application names a **single inventor**.
+This application names **two joint inventors**. Patent Center has an "Add inventor" control — enter both.
 
+### Inventor 1
 | Field | Value |
 |---|---|
 | Given name (first + middle) | Michael **[FILL — confirm full legal middle name/initial]** |
@@ -26,7 +27,17 @@ This application names a **single inventor**.
 | Residence — Country | **[FILL — e.g., US]** |
 | Mailing address | **[FILL — street, city, state, ZIP, country]** |
 
-> Note: residence for the cover sheet is **where the inventor lives**, not the business address. Your background indicates South Florida; the prior site/repo used a Toronto reference. Use your actual current residence.
+### Inventor 2
+| Field | Value |
+|---|---|
+| Given name (first + middle) | Brandon **[FILL — confirm full legal middle name/initial]** |
+| Family name (last) | Cole |
+| Residence — City | **[FILL — city of residence]** |
+| Residence — State | **[FILL]** |
+| Residence — Country | **[FILL]** |
+| Mailing address | **[FILL — street, city, state, ZIP, country]** |
+
+> Note: residence for the cover sheet is **where each inventor lives**, not the business address. Use each inventor's actual current residence. Both inventors must be listed; order does not affect rights for joint inventors.
 
 ---
 
@@ -116,3 +127,5 @@ The provisional cover sheet itself does **not** require an inventor signature in
 | Name | Michael Gravalec |
 | Date | **[FILL — date of filing]** |
 | Capacity | Inventor / Applicant representative |
+
+> With two joint inventors, the Patent Center submission may be signed by one inventor, by both, or by a representative of the applicant LLC. Confirm who will sign the electronic submission.
