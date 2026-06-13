@@ -187,7 +187,7 @@ figs.append(fig)
 # FIG. 5 - Revert-to-unopened state machine
 # ----------------------------------------------------------------------------
 fig, ax = new_fig(5, "Boot / Validation State Machine — \u201cRevert-to-Unopened\u201d")
-boot = box(ax, 40, 84, 20, 9, "POWER-UP /\nBOOT", "100")
+boot = box(ax, 8, 80, 30, 8, "POWER-UP / BOOT", "100", fc="#f2f2f2")
 steps = [
     ("Config card present\n& readable?", "101"),
     ("Config manifest\nschema-valid?", "102"),
@@ -197,23 +197,20 @@ steps = [
     ("Cross-card AIRCRAFT ID\nconsistent?", "106"),
     ("(opt.) integrity /\nsignature valid?", "107"),
 ]
-y = 73
+y = 69
 prev_b = boot
-prevc = bot(boot)
 for label, ref in steps:
-    b = box(ax, 8, y, 30, 8, label, ref, fc="#eef4fb", fs=FONT - 1)
-    arrow(ax, prevc[0] if prev_b is boot else cx(prev_b), (prev_b[1] if prev_b is not boot else boot[1]),
-          cx(b), top(b)[1])
+    b = box(ax, 8, y, 30, 7, label, ref, fc="#eef4fb", fs=FONT - 1)
+    arrow(ax, cx(prev_b), prev_b[1], cx(b), top(b)[1])
     # NO branch -> fault
     arrow(ax, right(b)[0], cy(b), 66, cy(b), dashed=True)
     ax.text(52, cy(b) + 1.1, "no", fontsize=FONT - 2)
     prev_b = b
-    prevc = bot(b)
-    y -= 9.4
+    y -= 8.7
 fault = box(ax, 66, 20, 28, 24, "FAULT STATE\n\n\u2022 in-memory checklist\n  store held EMPTY\n\u2022 amber legend\n\u2022 never present partial/\n  stale/mismatched data", "120", fc="#fbeeee", fs=FONT - 1)
-okstate = box(ax, 8, y + 1, 30, 9, "STORE OK\n\u2192 ready (selected-in: dark)", "110", fc="#eafaef")
+okstate = box(ax, 8, y - 0.5, 30, 8, "STORE OK\n\u2192 ready (selected-in: dark)", "110", fc="#eafaef")
 arrow(ax, cx(prev_b), prev_b[1], cx(okstate), top(okstate)[1])
-ax.text(23, prev_b[1] - 1.5, "all yes", fontsize=FONT - 2)
+ax.text(31, prev_b[1] - 1.7, "all yes", fontsize=FONT - 2)
 figs.append(fig)
 
 # ----------------------------------------------------------------------------
@@ -267,7 +264,7 @@ figs.append(fig)
 fig, ax = new_fig(8, "Card Integrity / Authentication Embodiment")
 card = box(ax, 8, 60, 30, 20, "CARD CONTENTS\nmanifest + clips\n+ SIGNATURE/HMAC/HASH", "70", fc="#fdf6e3", fs=FONT - 1)
 recompute = box(ax, 45, 62, 24, 14, "Recompute hash /\nverify signature\nvs. public key (72)", "71", fc="#eef4fb")
-key = box(ax, 45, 82, 24, 9, "Public key in firmware\nor write-protected config", "72")
+key = box(ax, 45, 80, 24, 8, "Public key in firmware\nor write-protected config", "72")
 ok = box(ax, 78, 70, 18, 9, "Valid \u2192 proceed\n(see FIG. 5)", "73", fc="#eafaef")
 bad = box(ax, 78, 52, 18, 11, "Invalid \u2192 FAULT\n(present nothing)", "74", fc="#fbeeee")
 arrow(ax, right(card)[0], cy(card), left(recompute)[0], cy(recompute))
@@ -358,7 +355,7 @@ figs.append(fig)
 # FIG. 13 - Readback verification
 # ----------------------------------------------------------------------------
 fig, ax = new_fig(13, "Crew Readback Verification (Challenge & Response)")
-read = box(ax, 35, 82, 30, 9, "Read item (e.g.\n\u201cGEAR\u201d) via OUTPUT", "320")
+read = box(ax, 35, 80, 30, 8, "Read item (e.g.\n\u201cGEAR\u201d) via OUTPUT", "320")
 exp = box(ax, 8, 66, 24, 11, "Expected response\nfrom DATA card\n(e.g. \u201cUP\u201d)", "321", fc="#fdf6e3")
 wait = box(ax, 35, 66, 30, 9, "Await spoken readback\n(bounded grammar)", "322", fc="#eef4fb")
 dec = box(ax, 37, 50, 26, 11, "Readback == expected?", "323", fc="#eef4fb")
