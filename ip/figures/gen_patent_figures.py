@@ -52,7 +52,7 @@ def box(ax, x, y, w, h, label, ref=None, fc=FACE, rounded=True, fs=FONT):
     ax.text(x + w / 2, y + h / 2, label, ha="center", va="center",
             fontsize=fs, wrap=True)
     if ref is not None:
-        ax.text(x + w - 1.2, y + h - 1.2, ref, ha="right", va="top",
+        ax.text(x + w + 0.6, y + h + 0.6, ref, ha="left", va="bottom",
                 fontsize=fs - 1, fontweight="bold")
     return (x, y, w, h)
 
@@ -88,7 +88,7 @@ def iso_marker(ax, x, y, label="ISO"):
     """draw a small isolation-barrier symbol (two vertical bars)."""
     ax.plot([x, x], [y - 3, y + 3], color=EDGE, lw=LW)
     ax.plot([x + 1.4, x + 1.4], [y - 3, y + 3], color=EDGE, lw=LW)
-    ax.text(x + 0.7, y + 4.2, label, ha="center", va="bottom", fontsize=FONT - 2,
+    ax.text(x + 0.7, y - 4.4, label, ha="center", va="top", fontsize=FONT - 2,
             fontweight="bold")
 
 
@@ -113,16 +113,16 @@ sel = box(ax, 88, 22, 10, 9, "SELECT /\nPTT in", "62")
 
 # input path arrows (receive only -> into MCU)
 arrow(ax, right(ap)[0], 52, left(iso_in)[0], cy(iso_in))
-ax.text(22, 58, "receive-only\ntap", ha="center", fontsize=FONT - 1)
+ax.text(31, 76.5, "receive-only tap", ha="center", fontsize=FONT - 1)
 arrow(ax, right(iso_in)[0], cy(iso_in), left(adc)[0], cy(adc))
 arrow(ax, right(adc)[0], cy(adc), left(mcu)[0], 62)
-iso_marker(ax, 24, cy(iso_in))
+iso_marker(ax, 24, 56)
 # output path arrows (MCU -> panel COM3)
 arrow(ax, left(mcu)[0], 45, right(dac)[0], cy(dac))
 arrow(ax, left(dac)[0], cy(dac), right(iso_out)[0], cy(iso_out))
 arrow(ax, left(iso_out)[0], cy(iso_out), 19, 47)
-ax.text(22, 30, "dedicated\nCOM3-style out", ha="center", fontsize=FONT - 1)
-iso_marker(ax, 24, cy(iso_out))
+ax.text(31, 19, "dedicated COM3-style out", ha="center", fontsize=FONT - 1)
+iso_marker(ax, 24, 44)
 # cards/annun
 arrow(ax, left(cfg)[0], cy(cfg), right(mcu)[0], 60, style="<->")
 arrow(ax, left(data)[0], cy(data), right(mcu)[0], 52, style="<->")
@@ -243,8 +243,8 @@ figs.append(fig)
 # FIG. 7 - Interaction flow
 # ----------------------------------------------------------------------------
 fig, ax = new_fig(7, "Interaction Flow — Hands-Free (VOX) with PTT Override")
-b1 = box(ax, 35, 84, 30, 9, "Crew speaks\nchecklist name", "200")
-b2 = box(ax, 35, 71, 30, 9, "Recognizer matches\ntrigger phrase (36)", "201")
+b1 = box(ax, 35, 80, 30, 8, "Crew speaks\nchecklist name", "200")
+b2 = box(ax, 35, 70, 30, 8, "Recognizer matches\ntrigger phrase (36)", "201")
 b3 = box(ax, 35, 58, 30, 9, "Play item clip via\nisolated OUTPUT (26/28)", "202")
 b4 = box(ax, 35, 45, 30, 9, "Await advance word\n/ readback (VAD-gated)", "203")
 dec = box(ax, 37, 30, 26, 11, "Recognized?", "204", fc="#eef4fb")
